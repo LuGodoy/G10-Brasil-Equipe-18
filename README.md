@@ -6,6 +6,8 @@
 
 **Status:** Planejamento e estruturação do MVP
 
+---
+
 ## Sobre o projeto
 
 O **CommunityLab** é uma solução baseada em Inteligência Artificial que transforma interações de comunidades digitais em insights estratégicos e ativos de marketing.
@@ -15,6 +17,8 @@ O projeto busca ajudar equipes de marketing, gestores de comunidades e criadores
 Por meio de análise de linguagem natural, modelos de linguagem (LLMs) e automação de processos, o CommunityLab pretende transformar dados não estruturados em informações organizadas e conteúdos que possam ser revisados e utilizados em estratégias de comunicação.
 
 O projeto está sendo desenvolvido durante o **Hackathon ONE G10 — Oracle Next Education & Alura**.
+
+---
 
 ## O problema
 
@@ -31,6 +35,8 @@ Entre os principais desafios estão:
 - Transformar informações em materiais de marketing.
 - Reduzir o esforço manual de análise e produção.
 
+---
+
 ## Nossa solução
 
 O CommunityLab propõe um fluxo automatizado capaz de receber interações de comunidades, processar seu conteúdo utilizando IA e gerar materiais de marketing a partir dos insights identificados.
@@ -44,6 +50,8 @@ O funcionamento previsto compreende:
 5. **Geração de conteúdo:** produção automatizada de pelo menos dois formatos de ativos de marketing.
 6. **Curadoria:** visualização, revisão e seleção dos resultados por meio de uma interface amigável.
 7. **Armazenamento:** integração com Oracle Cloud Infrastructure (OCI) Object Storage.
+
+---
 
 ## Objetivo do MVP
 
@@ -62,6 +70,8 @@ Desenvolver e demonstrar uma solução funcional capaz de transformar interaçõ
 - [ ] Demonstração de pelo menos três interações relevantes, conforme os requisitos do Hackathon.
 
 As funcionalidades acima representam o escopo planejado, não implementações já concluídas.
+
+---
 
 ## Arquitetura conceitual
 
@@ -95,6 +105,8 @@ O fluxo inicial proposto é:
 
 A arquitetura técnica definitiva será documentada após a validação das tecnologias e das integrações.
 
+---
+
 ## Tecnologias
 
 ### Tecnologias e recursos previstos
@@ -110,6 +122,8 @@ A arquitetura técnica definitiva será documentada após a validação das tecn
 
 **Observação:** A escolha definitiva de frameworks, modelos, serviços complementares e ferramentas de interface será realizada durante a definição da arquitetura.
 
+---
+
 ## Equipe
 
 | Integrante | Responsabilidade |
@@ -121,6 +135,8 @@ A arquitetura técnica definitiva será documentada após a validação das tecn
 | Luciene Godoy | Agent Engineer |
 
 O desenvolvimento será conduzido colaborativamente, com responsabilidades distribuídas conforme as especialidades técnicas e as necessidades do MVP.
+
+---
 
 ## Organização do repositório
 
@@ -149,6 +165,8 @@ CommunityLab/
 ```
 
 Essa estrutura representa a organização planejada. Os diretórios serão criados e ajustados conforme a evolução da implementação.
+
+---
 
 ## Padrões de colaboração
 
@@ -186,6 +204,8 @@ Cada Pull Request deverá apresentar:
 4. Informações sobre impactos em outros módulos.
 5. Revisão técnica antes da integração de alterações críticas.
 
+---
+
 ## Segurança e proteção de credenciais
 
 O projeto seguirá práticas básicas de segurança:
@@ -196,6 +216,8 @@ O projeto seguirá práticas básicas de segurança:
 - Disponibilizar um `.env.example` sem valores secretos.
 - Evitar publicar dados pessoais ou informações sensíveis provenientes das comunidades.
 - Revisar permissões de acesso aos serviços utilizados.
+
+---
 
 ## Gestão do projeto
 
@@ -212,6 +234,8 @@ A organização do trabalho considerará:
 - Status de execução.
 - Evidências de conclusão.
 
+---
+
 ## Roadmap inicial
 
 - [ ] Validação do escopo do MVP.
@@ -227,6 +251,8 @@ A organização do trabalho considerará:
 - [ ] Testes funcionais e de integração.
 - [ ] Preparação da demonstração final.
 
+---
+
 ## Resultados esperados
 
 Ao final do desenvolvimento, o CommunityLab deverá demonstrar a capacidade de:
@@ -236,6 +262,8 @@ Ao final do desenvolvimento, o CommunityLab deverá demonstrar a capacidade de:
 - Transformar insights em conteúdos de marketing.
 - Disponibilizar os resultados para revisão e curadoria.
 - Executar um fluxo integrado e demonstrável utilizando os recursos definidos para o Hackathon.
+
+---
 
 ## Licença
 
