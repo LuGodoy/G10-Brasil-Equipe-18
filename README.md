@@ -1,6 +1,6 @@
 # CommunityLab
 
-### Transformando conversas de comunidades digitais em inteligência e conteúdo de marketing com IA
+### Transformando Conversas de Comunidades Digitais em Inteligência e Conteúdo de Marketing com IA
 
 **Hackathon ONE G10 - Equpe 18 | Oracle Next Education + Alura**
 
