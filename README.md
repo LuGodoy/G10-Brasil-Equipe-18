@@ -1,5 +1,12 @@
 # CommunityLab
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![AI](https://img.shields.io/badge/Artificial_Intelligence-8A2BE2?style=for-the-badge)
+![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?style=for-the-badge&logo=oracle&logoColor=white)
+![ONE G10](https://img.shields.io/badge/ONE-G10-00875A?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Planning-orange?style=for-the-badge)
+
+
 ### Transformando Conversas de Comunidades Digitais em Inteligência e Conteúdo de Marketing com IA
 
 **Hackathon ONE G10 - Equpe 18 | Oracle Next Education + Alura**
@@ -8,7 +15,7 @@
 
 ---
 
-## Sobre o projeto
+## 💡 Sobre o projeto
 
 O **CommunityLab** é uma solução baseada em Inteligência Artificial que transforma interações de comunidades digitais em insights estratégicos e ativos de marketing.
 
@@ -20,7 +27,7 @@ O projeto está sendo desenvolvido durante o **Hackathon ONE G10 — Oracle Next
 
 ---
 
-## O problema
+## 🎯 O problema
 
 Comunidades digitais produzem diariamente grandes volumes de informações relevantes, incluindo dúvidas, opiniões, sugestões, experiências e tendências.
 
@@ -37,7 +44,7 @@ Entre os principais desafios estão:
 
 ---
 
-## Nossa solução
+## 🚀 Nossa solução
 
 O CommunityLab propõe um fluxo automatizado capaz de receber interações de comunidades, processar seu conteúdo utilizando IA e gerar materiais de marketing a partir dos insights identificados.
 
@@ -53,11 +60,11 @@ O funcionamento previsto compreende:
 
 ---
 
-## Objetivo do MVP
+## 📋 Objetivo do MVP
 
 Desenvolver e demonstrar uma solução funcional capaz de transformar interações de comunidades digitais em inteligência acionável e conteúdos de marketing, utilizando Inteligência Artificial e automação.
 
-### Funcionalidades previstas
+### ⚙️ Funcionalidades previstas
 
 - [ ] Ingestão de mensagens e arquivos CSV/JSON.
 - [ ] Análise de sentimentos com IA.
@@ -73,7 +80,7 @@ As funcionalidades acima representam o escopo planejado, não implementações j
 
 ---
 
-## Arquitetura conceitual
+## 🏗️ Arquitetura conceitual
 
 O fluxo inicial proposto é:
 
@@ -107,7 +114,7 @@ A arquitetura técnica definitiva será documentada após a validação das tecn
 
 ---
 
-## Tecnologias
+## 🛠️ Tecnologias
 
 ### Tecnologias e recursos previstos
 
@@ -124,7 +131,7 @@ A arquitetura técnica definitiva será documentada após a validação das tecn
 
 ---
 
-## Equipe
+## 👥 Equipe
 
 | Integrante | Responsabilidade |
 |---|---|
@@ -138,7 +145,7 @@ O desenvolvimento será conduzido colaborativamente, com responsabilidades distr
 
 ---
 
-## Organização do repositório
+## 📁 Organização do repositório
 
 Estrutura inicial proposta:
 
@@ -168,7 +175,7 @@ Essa estrutura representa a organização planejada. Os diretórios serão criad
 
 ---
 
-## Padrões de colaboração
+## 🤝 Padrões de colaboração
 
 ### Branches
 
@@ -206,7 +213,7 @@ Cada Pull Request deverá apresentar:
 
 ---
 
-## Segurança e proteção de credenciais
+## 🔐 Segurança e proteção de credenciais
 
 O projeto seguirá práticas básicas de segurança:
 
@@ -219,7 +226,7 @@ O projeto seguirá práticas básicas de segurança:
 
 ---
 
-## Gestão do projeto
+## 📊 Gestão do projeto
 
 O planejamento e o acompanhamento das atividades serão realizados por meio do Trello.
 
@@ -236,7 +243,7 @@ A organização do trabalho considerará:
 
 ---
 
-## Roadmap inicial
+## 🗺️ Roadmap inicial
 
 - [ ] Validação do escopo do MVP.
 - [ ] Estruturação do repositório GitHub.
@@ -253,7 +260,7 @@ A organização do trabalho considerará:
 
 ---
 
-## Resultados esperados
+## 📈 Resultados esperados
 
 Ao final do desenvolvimento, o CommunityLab deverá demonstrar a capacidade de:
 
@@ -265,7 +272,7 @@ Ao final do desenvolvimento, o CommunityLab deverá demonstrar a capacidade de:
 
 ---
 
-## Licença
+## 📄 Licença
 
 A licença do projeto será definida pela equipe, considerando as regras do Hackathon e a estratégia de disponibilização do código-fonte.
 
