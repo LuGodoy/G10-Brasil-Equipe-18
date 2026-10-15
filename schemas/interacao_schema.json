@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://communitylab/schemas/interacao.schema.json",
+  "title": "Interacao",
+  "description": "Interação de comunidade digital. Na ingestão (F01) apenas os campos de entrada são obrigatórios; o bloco 'analise' é preenchido pelo LLM (F02, F03, F04).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["versao_schema", "id", "autor_id", "data", "origem", "texto"],
+  "properties": {
+    "versao_schema": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Versão do contrato. Incrementar a cada mudança."
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Identificador único da interação dentro do lote."
+    },
+    "autor_id": {
+      "type": "string",
+      "pattern": "^membro_[0-9]{3,}$",
+      "description": "Identificador pseudonimizado. Nunca usar nome real."
+    },
+    "data": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 completo, ex.: 2026-10-13T14:30:00Z"
+    },
+    "origem": {
+      "type": "string",
+      "enum": ["simulado", "discord", "slack", "forum", "outro"]
+    },
+    "texto": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "description": "Conteúdo bruto da mensagem."
+    },
+    "analise": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sentimento", "relevancia", "topicos", "tipo_insight"],
+      "properties": {
+        "sentimento": {
+          "type": "string",
+          "enum": ["positivo", "neutro", "negativo"]
+        },
+        "relevancia": {
+          "type": "string",
+          "enum": ["alta", "media", "baixa"]
+        },
+        "topicos": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "carreira",
+              "estudos",
+              "tecnologia",
+              "ferramentas",
+              "comunidade",
+              "eventos",
+              "outro"
+            ]
+          }
+        },
+        "tipo_insight": {
+          "type": "string",
+          "enum": ["historia", "conquista", "duvida", "insight", "outro"]
+        },
+        "justificativa": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Por que o LLM classificou assim. Ajuda o revisor humano."
+        },
+        "confianca": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "status_revisao": {
+      "type": "string",
+      "enum": ["pendente", "aprovado", "rejeitado"],
+      "default": "pendente"
+    }
+  }
+}

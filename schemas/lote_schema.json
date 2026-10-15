@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://communitylab/schemas/lote.schema.json",
+  "title": "Lote",
+  "description": "Envelope de um lote de interações. Compatível com a referência do hackathon (origem_comunidade, periodo_referencia, interacoes). Cada item de 'interacoes' é validado à parte contra interacao.schema.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interacoes"],
+  "properties": {
+    "versao_schema": { "type": "string", "const": "1.1" },
+    "id_lote": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+$" },
+    "origem_comunidade": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Valor original da entrada, ex.: Discord_Grupo_ONE_G10. Preservado como veio."
+    },
+    "periodo_referencia": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Ex.: Semana_04. Não é uma data."
+    },
+    "criado_em": { "type": "string", "format": "date-time" },
+    "interacoes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "object" }
+    }
+  }
+}
