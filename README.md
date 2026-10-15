@@ -1,11 +1,10 @@
 # CommunityLab
 
+![ONE G10](https://img.shields.io/badge/ONE-G10-00875A?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![AI](https://img.shields.io/badge/Artificial_Intelligence-8A2BE2?style=for-the-badge)
 ![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?style=for-the-badge&logo=oracle&logoColor=white)
-![ONE G10](https://img.shields.io/badge/ONE-G10-00875A?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Planning-orange?style=for-the-badge)
-
 
 **Detector Inteligente de Histórias de Sucesso e Testemunhos com IA**
 
