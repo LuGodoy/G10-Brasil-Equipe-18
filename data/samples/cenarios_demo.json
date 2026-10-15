@@ -1,0 +1,360 @@
+{
+  "versao_schema": "1.0",
+  "aviso": "Dados 100% simulados para demonstração. Nenhuma pessoa ou depoimento é real.",
+  "cenarios": [
+    {
+      "id": "cenario_1",
+      "titulo": "Conquistas de carreira",
+      "descricao": "Membros relatando contratações e primeiras vagas. Gera post de LinkedIn celebrando conquistas e resumo de newsletter.",
+      "interacoes": [
+        {
+          "versao_schema": "1.0",
+          "id": 1,
+          "autor_id": "membro_042",
+          "data": "2026-10-05T14:30:00Z",
+          "origem": "simulado",
+          "texto": "Pessoal, consegui minha primeira vaga como dev júnior! Passei por duas entrevistas técnicas e o projeto que fiz no curso foi o assunto principal.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["carreira", "estudos"],
+            "tipo_insight": "conquista",
+            "justificativa": "Relato de primeira contratação ligada a projeto do curso.",
+            "confianca": 0.95
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 2,
+          "autor_id": "membro_017",
+          "data": "2026-10-05T15:02:00Z",
+          "origem": "simulado",
+          "texto": "Parabéns! Quando você começou a estudar? Fico animada de ver que dá certo.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "baixa",
+            "topicos": ["comunidade"],
+            "tipo_insight": "outro",
+            "justificativa": "Comentário de apoio sem conteúdo aproveitável.",
+            "confianca": 0.9
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 3,
+          "autor_id": "membro_088",
+          "data": "2026-10-06T10:12:00Z",
+          "origem": "simulado",
+          "texto": "Fui aprovada em um estágio em dados. O que mais ajudou foi montar um portfólio no GitHub com três projetos pequenos.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["carreira", "ferramentas"],
+            "tipo_insight": "conquista",
+            "justificativa": "Conquista com dica prática (portfólio no GitHub).",
+            "confianca": 0.93
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 4,
+          "autor_id": "membro_031",
+          "data": "2026-10-07T09:45:00Z",
+          "origem": "simulado",
+          "texto": "Estou há semanas mandando currículo e nada. Alguém tem dica de como se destacar sem experiência?",
+          "analise": {
+            "sentimento": "negativo",
+            "relevancia": "media",
+            "topicos": ["carreira"],
+            "tipo_insight": "duvida",
+            "justificativa": "Dúvida recorrente sobre inserção sem experiência.",
+            "confianca": 0.88
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 5,
+          "autor_id": "membro_088",
+          "data": "2026-10-07T11:20:00Z",
+          "origem": "simulado",
+          "texto": "@membro_031 o que funcionou comigo foi personalizar o currículo para cada vaga e mostrar o código no GitHub.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["carreira", "ferramentas"],
+            "tipo_insight": "insight",
+            "justificativa": "Dica acionável em resposta a uma dúvida.",
+            "confianca": 0.9
+          },
+          "status_revisao": "aprovado"
+        }
+      ],
+      "ativos": [
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_001",
+          "tipo": "post_linkedin",
+          "titulo": "Quando a prática vira vaga",
+          "texto": "Esta semana, a nossa comunidade celebrou duas conquistas: uma primeira vaga como dev júnior e uma aprovação em estágio na área de dados.\n\nO que elas têm em comum? Projetos práticos. Um membro contou que o projeto feito no curso foi o centro das entrevistas técnicas; outro destacou que montar um portfólio no GitHub com três projetos pequenos fez diferença.\n\nA dica que mais circulou por aqui: personalize o currículo para cada vaga e mostre seu código.\n\n#carreira #tecnologia #comunidade",
+          "interacoes_origem": [1, 3, 5],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:00:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_001.json"
+        },
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_002",
+          "tipo": "resumo_newsletter",
+          "titulo": "Newsletter: conquistas e dicas de carreira",
+          "texto": "Destaques da semana\n\n• Conquistas: um membro foi contratado como dev júnior e outro foi aprovado em estágio em dados.\n• Aprendizado: projetos práticos e um portfólio no GitHub foram o fator citado nos dois casos.\n• Dúvida da comunidade: como se destacar sem experiência? A resposta mais útil foi adaptar o currículo a cada vaga e exibir o código.\n\nTem uma conquista para compartilhar? Conte para a gente no canal da comunidade.",
+          "interacoes_origem": [1, 3, 4, 5],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:01:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_002.json"
+        }
+      ]
+    },
+    {
+      "id": "cenario_2",
+      "titulo": "Dúvidas recorrentes sobre estudos",
+      "descricao": "Perguntas frequentes e respostas úteis. Gera post educativo e resumo de newsletter com FAQ da semana.",
+      "interacoes": [
+        {
+          "versao_schema": "1.0",
+          "id": 101,
+          "autor_id": "membro_054",
+          "data": "2026-10-08T13:10:00Z",
+          "origem": "simulado",
+          "texto": "Como vocês organizam a rotina de estudo trabalhando o dia todo? Eu sempre desisto na segunda semana.",
+          "analise": {
+            "sentimento": "negativo",
+            "relevancia": "alta",
+            "topicos": ["estudos"],
+            "tipo_insight": "duvida",
+            "justificativa": "Dúvida comum sobre constância nos estudos.",
+            "confianca": 0.92
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 102,
+          "autor_id": "membro_071",
+          "data": "2026-10-08T13:40:00Z",
+          "origem": "simulado",
+          "texto": "Eu separo 40 minutos por dia, sempre no mesmo horário. Pouco, mas todo dia, funciona melhor do que maratona no fim de semana.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["estudos"],
+            "tipo_insight": "insight",
+            "justificativa": "Estratégia prática de rotina compartilhada.",
+            "confianca": 0.91
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 103,
+          "autor_id": "membro_063",
+          "data": "2026-10-08T14:05:00Z",
+          "origem": "simulado",
+          "texto": "Eu uso um grupo de estudo semanal por chamada de voz. Ter com quem prestar contas ajuda muito.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["estudos", "comunidade"],
+            "tipo_insight": "insight",
+            "justificativa": "Estratégia de responsabilização em grupo.",
+            "confianca": 0.9
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 104,
+          "autor_id": "membro_009",
+          "data": "2026-10-09T08:30:00Z",
+          "origem": "simulado",
+          "texto": "Alguém sabe se vale mais aprender SQL ou Python primeiro para trabalhar com dados?",
+          "analise": {
+            "sentimento": "neutro",
+            "relevancia": "media",
+            "topicos": ["estudos", "tecnologia"],
+            "tipo_insight": "duvida",
+            "justificativa": "Dúvida sobre ordem de aprendizado.",
+            "confianca": 0.89
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 105,
+          "autor_id": "membro_071",
+          "data": "2026-10-09T09:15:00Z",
+          "origem": "simulado",
+          "texto": "Na minha experiência, comecei por SQL porque consegui resultados rápidos em consultas simples e isso me deu motivação.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "media",
+            "topicos": ["estudos", "tecnologia"],
+            "tipo_insight": "insight",
+            "justificativa": "Experiência pessoal, sem generalização.",
+            "confianca": 0.85
+          },
+          "status_revisao": "pendente"
+        }
+      ],
+      "ativos": [
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_003",
+          "tipo": "post_linkedin",
+          "titulo": "Como manter a constância nos estudos",
+          "texto": "Uma pergunta muito comum na nossa comunidade: como estudar com constância trabalhando o dia todo?\n\nDuas respostas se destacaram:\n1) Estudar 40 minutos por dia, no mesmo horário. Pouco, mas diário, rendeu mais do que maratona de fim de semana para quem contou a experiência.\n2) Participar de um grupo de estudo semanal por chamada de voz, para ter com quem prestar contas.\n\nE você, o que funciona na sua rotina?\n\n#estudos #tecnologia #comunidade",
+          "interacoes_origem": [101, 102, 103],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:05:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_003.json"
+        },
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_004",
+          "tipo": "resumo_newsletter",
+          "titulo": "Newsletter: perguntas da semana",
+          "texto": "As dúvidas que mais apareceram\n\n• Rotina de estudo: como manter a constância trabalhando o dia todo? Membros sugeriram sessões curtas e diárias e grupos de estudo semanais.\n• Por onde começar em dados: SQL ou Python? Um membro relatou ter começado por SQL pela rapidez dos primeiros resultados; a pergunta segue aberta para mais opiniões.\n\nTem outra experiência? Responda na comunidade.",
+          "interacoes_origem": [101, 102, 103, 104, 105],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:06:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_004.json"
+        }
+      ]
+    },
+    {
+      "id": "cenario_3",
+      "titulo": "Feedback sobre evento e ferramentas",
+      "descricao": "Mistura de elogios e críticas. Demonstra o tratamento de sentimento negativo e a curadoria humana antes de usar o conteúdo.",
+      "interacoes": [
+        {
+          "versao_schema": "1.0",
+          "id": 201,
+          "autor_id": "membro_025",
+          "data": "2026-10-10T20:05:00Z",
+          "origem": "simulado",
+          "texto": "A live de ontem foi excelente, a demonstração ao vivo ajudou muito a entender o fluxo completo.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["eventos"],
+            "tipo_insight": "historia",
+            "justificativa": "Feedback positivo específico sobre a live.",
+            "confianca": 0.94
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 202,
+          "autor_id": "membro_047",
+          "data": "2026-10-10T20:20:00Z",
+          "origem": "simulado",
+          "texto": "O áudio estava baixo nos primeiros dez minutos, tive dificuldade de acompanhar.",
+          "analise": {
+            "sentimento": "negativo",
+            "relevancia": "media",
+            "topicos": ["eventos"],
+            "tipo_insight": "outro",
+            "justificativa": "Crítica pontual de qualidade técnica.",
+            "confianca": 0.9
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 203,
+          "autor_id": "membro_012",
+          "data": "2026-10-11T09:00:00Z",
+          "origem": "simulado",
+          "texto": "Descobri que dá para guardar arquivos na nuvem usando o plano gratuito da Oracle. Montei meu primeiro bucket e foi mais simples do que eu imaginava.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["ferramentas", "tecnologia"],
+            "tipo_insight": "conquista",
+            "justificativa": "Primeira experiência prática com armazenamento em nuvem.",
+            "confianca": 0.9
+          },
+          "status_revisao": "aprovado"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 204,
+          "autor_id": "membro_036",
+          "data": "2026-10-11T10:30:00Z",
+          "origem": "simulado",
+          "texto": "Tive dificuldade na hora de configurar as credenciais de acesso. Alguém tem um passo a passo?",
+          "analise": {
+            "sentimento": "negativo",
+            "relevancia": "alta",
+            "topicos": ["ferramentas", "tecnologia"],
+            "tipo_insight": "duvida",
+            "justificativa": "Dúvida técnica sobre credenciais, tema recorrente.",
+            "confianca": 0.9
+          },
+          "status_revisao": "pendente"
+        },
+        {
+          "versao_schema": "1.0",
+          "id": 205,
+          "autor_id": "membro_012",
+          "data": "2026-10-11T11:10:00Z",
+          "origem": "simulado",
+          "texto": "@membro_036 o que me ajudou foi guardar as chaves em variáveis de ambiente e nunca subir o arquivo de configuração no repositório.",
+          "analise": {
+            "sentimento": "positivo",
+            "relevancia": "alta",
+            "topicos": ["ferramentas", "tecnologia"],
+            "tipo_insight": "insight",
+            "justificativa": "Boa prática de segurança compartilhada.",
+            "confianca": 0.92
+          },
+          "status_revisao": "aprovado"
+        }
+      ],
+      "ativos": [
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_005",
+          "tipo": "post_linkedin",
+          "titulo": "Primeiro bucket na nuvem",
+          "texto": "Aprender na prática costuma ser mais simples do que parece. Um membro da nossa comunidade contou que montou seu primeiro bucket de armazenamento usando o plano gratuito da Oracle e achou o processo mais simples do que imaginava.\n\nE uma boa prática que surgiu na conversa: guarde chaves em variáveis de ambiente e nunca suba o arquivo de configuração para o repositório.\n\n#nuvem #seguranca #tecnologia #comunidade",
+          "interacoes_origem": [203, 205],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:10:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_005.json"
+        },
+        {
+          "versao_schema": "1.0",
+          "id_ativo": "ativo_006",
+          "tipo": "resumo_newsletter",
+          "titulo": "Newsletter: feedback da live e dicas de nuvem",
+          "texto": "O que a comunidade disse\n\n• Live: elogios à demonstração ao vivo, que ajudou a entender o fluxo completo. Também houve um aviso sobre o áudio baixo nos primeiros dez minutos.\n• Nuvem: um membro compartilhou a primeira experiência com um bucket no plano gratuito da Oracle.\n• Dúvida frequente: como configurar credenciais de acesso. Dica da comunidade: use variáveis de ambiente e não suba arquivos de configuração para o repositório.",
+          "interacoes_origem": [201, 202, 203, 204, 205],
+          "status_revisao": "pendente",
+          "modelo_llm": "provedor-llm-unico",
+          "criado_em": "2026-10-13T16:11:00Z",
+          "oci_object_path": "ativos/2026-10-13/ativo_006.json"
+        }
+      ]
+    }
+  ]
+}

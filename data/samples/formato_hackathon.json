@@ -1,0 +1,18 @@
+{
+  "origem_comunidade": "Discord_Grupo_ONE_G10",
+  "periodo_referencia": "Semana_04",
+  "interacoes": [
+    {
+      "autor": "membro_001",
+      "canal": "#conquistas-e-vagas",
+      "tipo": "depoimento",
+      "texto": "Conquistei minha primeira vaga na área de IA!"
+    },
+    {
+      "autor": "membro_002",
+      "canal": "#duvidas-langgraph",
+      "tipo": "pergunta_tecnica",
+      "texto": "Como estruturar nós condicionais no LangGraph?"
+    }
+  ]
+}
