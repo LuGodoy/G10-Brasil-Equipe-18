@@ -78,7 +78,6 @@ Desenvolver e demonstrar uma solução funcional capaz de identificar histórias
 - [ ] Integração com OCI Object Storage — Always Free.
 - [ ] Persistência e recuperação dos ativos gerados.
 - [ ] Demonstração de pelo menos três casos de uso.
-- [ ] 
 
 As funcionalidades representam o escopo planejado e não implementações já concluídas.
 Limites do MVP
