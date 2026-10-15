@@ -7,127 +7,129 @@
 ![Status](https://img.shields.io/badge/Status-Planning-orange?style=for-the-badge)
 
 
-### Transformando Conversas de Comunidades Digitais em Inteligência e Conteúdo de Marketing com IA
+**Detector Inteligente de Histórias de Sucesso e Testemunhos com IA**
 
-**Hackathon ONE G10 - Equpe 18 | Oracle Next Education + Alura**
+**Hackathon ONE G10 — Equipe 18 | Oracle Next Education + Alura**
 
-**Status:** Planejamento e estruturação do MVP
+**Status:** Planejamento e redefinição do escopo funcional do MVP
 
 ---
 
 ## 💡 Sobre o projeto
 
-O **CommunityLab** é uma solução baseada em Inteligência Artificial que transforma interações de comunidades digitais em insights estratégicos e ativos de marketing.
-
-O projeto busca ajudar equipes de marketing, gestores de comunidades e criadores de conteúdo a identificar assuntos relevantes, compreender sentimentos e aproveitar o conhecimento gerado espontaneamente pelas comunidades.
-
-Por meio de análise de linguagem natural, modelos de linguagem (LLMs) e automação de processos, o CommunityLab pretende transformar dados não estruturados em informações organizadas e conteúdos que possam ser revisados e utilizados em estratégias de comunicação.
-
-O projeto está sendo desenvolvido durante o **Hackathon ONE G10 — Oracle Next Education & Alura**.
+**O CommunityLab** é uma solução baseada em Inteligência Artificial que identifica histórias de sucesso, relatos de superação, conquistas profissionais e projetos de destaque em interações de comunidades digitais.
+A proposta é transformar experiências compartilhadas espontaneamente em testemunhos, cases de sucesso e sugestões de conteúdo para redes sociais, utilizando modelos de linguagem (LLMs), processamento de linguagem natural e automação.
+O projeto busca apoiar equipes de marketing e gestores de comunidades na identificação de histórias relevantes, preservando as evidências originais e permitindo revisão humana antes de qualquer utilização pública.
+Desenvolvido para o **Hackathon ONE G10 — Oracle Next Education & Alura**, com participação na simulação de projetos da No Country.
 
 ---
 
 ## 🎯 O problema
 
-Comunidades digitais produzem diariamente grandes volumes de informações relevantes, incluindo dúvidas, opiniões, sugestões, experiências e tendências.
-
-Entretanto, boa parte desse conteúdo permanece dispersa, dificultando sua análise e utilização estratégica.
-
+Comunidades de aprendizagem, tecnologia e desenvolvimento profissional produzem diariamente mensagens sobre conquistas, desafios superados, oportunidades profissionais e projetos realizados.
+Entretanto, muitas dessas histórias permanecem dispersas em conversas e históricos de mensagens.
 Entre os principais desafios estão:
-
-- Identificar os temas mais discutidos.
-- Compreender os sentimentos expressos pelos participantes.
-- Reconhecer dúvidas e necessidades recorrentes.
-- Selecionar interações com potencial para gerar conteúdo.
-- Transformar informações em materiais de marketing.
-- Reduzir o esforço manual de análise e produção.
+- Identificar conquistas profissionais e histórias de superação.
+- Reconhecer projetos e realizações de destaque.
+- Localizar testemunhos espontâneos dos participantes.
+- Extrair fatos, resultados e citações verificáveis.
+- Transformar relatos em conteúdos estruturados.
+- Reduzir o esforço manual de análise e produção de materiais de marketing.
+O resultado é a perda de oportunidades de comunicação, reconhecimento e engajamento.
 
 ---
 
 ## 🚀 Nossa solução
 
-O CommunityLab propõe um fluxo automatizado capaz de receber interações de comunidades, processar seu conteúdo utilizando IA e gerar materiais de marketing a partir dos insights identificados.
+O CommunityLab propõe um Detector Inteligente de Histórias de Sucesso e Testemunhos, capaz de analisar interações de comunidades digitais e identificar automaticamente relatos relevantes.
+O fluxo previsto compreende:
 
-O funcionamento previsto compreende:
+1. **Ingestão:** recebimento de mensagens por arquivos CSV ou JSON.
+2. **Preparação:** limpeza, normalização e estruturação dos dados.
+3. **Análise com IA:** identificação de sentimentos, tópicos e relevância.
+4. **Detecção:** reconhecimento de histórias de sucesso, conquistas profissionais, superação e projetos de destaque.
+5. **Extração:** identificação de fatos, resultados, evidências e citações originais.
+6. **Geração:** produção automatizada de testemunhos, cases de sucesso e sugestões de posts LinkedIn.
+7. **Curadoria:** visualização, edição, aprovação ou rejeição dos conteúdos.
+8. **Armazenamento:** persistência e recuperação dos ativos no OCI Object Storage.
 
-1. **Ingestão:** recebimento de mensagens e arquivos CSV ou JSON.
-2. **Processamento:** organização e preparação dos dados.
-3. **Análise com IA:** identificação de sentimentos, tópicos e interações relevantes.
-4. **Seleção de oportunidades:** identificação de informações com potencial de aproveitamento.
-5. **Geração de conteúdo:** produção automatizada de pelo menos dois formatos de ativos de marketing.
-6. **Curadoria:** visualização, revisão e seleção dos resultados por meio de uma interface amigável.
-7. **Armazenamento:** integração com Oracle Cloud Infrastructure (OCI) Object Storage.
+Os conteúdos não serão publicados automaticamente. A divulgação de relatos identificáveis dependerá de autorização apropriada.
 
 ---
 
 ## 📋 Objetivo do MVP
 
-Desenvolver e demonstrar uma solução funcional capaz de transformar interações de comunidades digitais em inteligência acionável e conteúdos de marketing, utilizando Inteligência Artificial e automação.
+Desenvolver e demonstrar uma solução funcional capaz de identificar histórias de sucesso em comunidades digitais e transformá-las em ativos de marketing, utilizando Inteligência Artificial, automação e curadoria humana.
 
 ### ⚙️ Funcionalidades previstas
 
-- [ ] Ingestão de mensagens e arquivos CSV/JSON.
-- [ ] Análise de sentimentos com IA.
-- [ ] Extração de tópicos relevantes.
-- [ ] Identificação de interações de interesse.
-- [ ] Geração de pelo menos dois formatos de ativos de marketing.
-- [ ] Orquestração automatizada do processamento.
-- [ ] Interface para visualização e curadoria.
-- [ ] Integração com OCI Object Storage (Always Free).
-- [ ] Demonstração de pelo menos três interações relevantes, conforme os requisitos do Hackathon.
+- [ ] Ingestão de mensagens por CSV/JSON.
+- [ ] Preparação e estruturação textual dos dados.
+- [ ] Análise de sentimentos utilizando LLMs.
+- [ ] Extração e classificação de tópicos relevantes.
+- [ ] Identificação de interações com potencial estratégico.
+- [ ] Detecção de histórias de sucesso, conquistas e relatos de superação.
+- [ ] Extração de fatos, resultados, evidências e citações originais.
+- [ ] Geração de testemunhos estruturados.
+- [ ] Geração de cases de sucesso.
+- [ ] Geração complementar de sugestões de posts LinkedIn.
+- [ ] Orquestração automatizada do processamento em Python.
+- [ ] Interface web para visualização e curadoria.
+- [ ] Integração com OCI Object Storage — Always Free.
+- [ ] Persistência e recuperação dos ativos gerados.
+- [ ] Demonstração de pelo menos três casos de uso.
+- [ ] 
 
-As funcionalidades acima representam o escopo planejado, não implementações já concluídas.
+As funcionalidades representam o escopo planejado e não implementações já concluídas.
+Limites do MVP
+A primeira versão priorizará arquivos CSV/JSON, sem exigir integração direta com Discord, Slack ou outras plataformas.
+Publicação automática, dashboards avançados e monitoramento em tempo real poderão ser desenvolvidos futuramente.
 
 ---
 
 ## 🏗️ Arquitetura conceitual
 
-O fluxo inicial proposto é:
+O fluxo proposto é:
 
-**Comunidade digital / CSV / JSON**
-
-↓
-
-**Ingestão e preparação dos dados**
-
-↓
-
-**Análise com Inteligência Artificial**
-
-↓
-
-**Identificação de tópicos, sentimentos e oportunidades**
-
-↓
-
-**Geração automatizada de conteúdos**
-
-↓
-
-**Interface de visualização e curadoria**
-
-↓
-
-**Armazenamento e disponibilização dos resultados**
-
-A arquitetura técnica definitiva será documentada após a validação das tecnologias e das integrações.
+**Mensagens de comunidades digitais — CSV / JSON**
+                    ↓
+       **Ingestão e preparação dos dados**
+                    ↓
+    **Análise de sentimentos e tópicos com LLM**
+                    ↓
+       **Detecção de histórias de sucesso**
+                    ↓
+   **Extração de fatos, resultados e citações**
+                    ↓
+    **Geração de testemunhos, cases e posts**
+                    ↓
+       **Interface de visualização e curadoria**
+                    ↓
+ Persistência e recuperação no OCI Object Storage
+A orquestração será realizada por scripts Python, com tratamento de erros e fluxos condicionais.
+A arquitetura técnica definitiva será validada durante o desenvolvimento.
 
 ---
 
 ## 🛠️ Tecnologias
 
-### Tecnologias e recursos previstos
+### Stack proposta
 
 | Tecnologia | Aplicação prevista |
 |---|---|
 | Python | Processamento de dados e lógica de aplicação |
-| LLMs | Análise de linguagem e geração de conteúdo |
-| n8n ou equivalente | Orquestração de processos |
-| OCI Object Storage | Armazenamento de dados e artefatos |
+| Pandas | Leitura e preparação dos dados |
+| LLMs | Análise, extração e geração de conteúdo |
+| Pydantic | Validação de dados estruturados |
+| Streamlit | Interface web e curadoria |
+| OCI Python SDK | Integração com Oracle Cloud 
+| OCI Object Storage | Persistência e recuperação dos ativos |
+| pytest | Testes automatizados |
 | GitHub | Versionamento e colaboração |
 | Trello | Gestão de atividades e entregáveis |
 
-**Observação:** A escolha definitiva de frameworks, modelos, serviços complementares e ferramentas de interface será realizada durante a definição da arquitetura.
+
+**Observação:** O provedor de LLM e as configurações definitivas serão definidos conforme os requisitos e recursos disponíveis.
 
 ---
 
@@ -149,7 +151,7 @@ O desenvolvimento será conduzido colaborativamente, com responsabilidades distr
 
 Estrutura inicial proposta:
 
-```text
+```
 CommunityLab/
 ├── README.md
 ├── .gitignore
@@ -162,7 +164,8 @@ CommunityLab/
 │   ├── ingestion/
 │   ├── preprocessing/
 │   ├── analysis/
-│   ├── agents/
+│   ├── detection/
+│   ├── extraction/
 │   ├── generation/
 │   ├── orchestration/
 │   └── storage/
@@ -170,8 +173,7 @@ CommunityLab/
 ├── tests/
 └── workflows/
 ```
-
-Essa estrutura representa a organização planejada. Os diretórios serão criados e ajustados conforme a evolução da implementação.
+Essa estrutura é planejada. Os diretórios serão criados e ajustados durante a implementação.
 
 ---
 
@@ -179,25 +181,27 @@ Essa estrutura representa a organização planejada. Os diretórios serão criad
 
 ### Branches
 
-A branch principal será `main`.
+A branch principal será main.
 
-Novas funcionalidades deverão ser desenvolvidas em branches específicas, seguindo o padrão:
+Novas funcionalidades deverão ser desenvolvidas em branches específicas:
 
-- `feature/nome-da-funcionalidade`
-- `fix/descricao-da-correcao`
-- `docs/descricao-da-documentacao`
-- `chore/descricao-da-tarefa`
+- feature/nome-da-funcionalidade
+- fix/descricao-da-correcao
+- docs/descricao-da-documentacao
+- chore/descricao-da-tarefa
 
 ### Commits
 
-Adotaremos mensagens objetivas e descritivas, preferencialmente seguindo o padrão Conventional Commits.
+Adotaremos mensagens objetivas, preferencialmente seguindo o padrão Conventional Commits.
 
 Exemplos:
 
-- `feat: implementa ingestao de arquivos csv`
-- `fix: corrige tratamento de mensagens vazias`
-- `docs: atualiza arquitetura do projeto`
-- `test: adiciona testes de analise de sentimentos`
+- feat: implementa ingestao de arquivos csv
+- feat: adiciona detector de historias de sucesso
+- feat: gera testemunhos estruturados
+- fix: corrige extracao de citacoes
+- docs: atualiza arquitetura do projeto
+- test: adiciona testes de classificacao
 
 ### Pull Requests
 
@@ -206,57 +210,83 @@ As alterações deverão ser integradas preferencialmente por Pull Requests.
 Cada Pull Request deverá apresentar:
 
 1. Descrição da alteração.
-2. Referência ao card correspondente no Trello, quando aplicável.
+2. Referência ao card correspondente no Trello.
 3. Evidências de testes realizados.
 4. Informações sobre impactos em outros módulos.
 5. Revisão técnica antes da integração de alterações críticas.
 
 ---
 
-## 🔐 Segurança e proteção de credenciais
+## 🔐 Segurança, privacidade e proteção de credenciais
 
-O projeto seguirá práticas básicas de segurança:
+O projeto seguirá práticas de segurança e proteção de dados:
 
 - Não armazenar senhas, tokens ou chaves de API no repositório.
 - Utilizar variáveis de ambiente para informações sensíveis.
-- Manter arquivos `.env` fora do controle de versão.
-- Disponibilizar um `.env.example` sem valores secretos.
-- Evitar publicar dados pessoais ou informações sensíveis provenientes das comunidades.
+- Manter arquivos .env fora do versionamento.
+- Disponibilizar .env.example sem valores secretos.
+- Preservar a rastreabilidade entre citações e mensagens originais.
+- Evitar gerar fatos, resultados ou declarações não comprovados.
+- Utilizar dados simulados ou autorizados nas demonstrações.
+- Exigir revisão humana antes da utilização pública dos conteúdos.
+- Respeitar a privacidade e a autorização dos participantes.
 - Revisar permissões de acesso aos serviços utilizados.
 
 ---
 
 ## 📊 Gestão do projeto
 
-O planejamento e o acompanhamento das atividades serão realizados por meio do Trello.
+O planejamento e acompanhamento serão realizados no Trello, utilizando Kanban.
+O projeto está estruturado em 25 cards distribuídos em sete fases:
 
-Cada atividade poderá ser relacionada a branches, commits e Pull Requests do GitHub, permitindo rastrear sua evolução desde o planejamento até a entrega.
+1. Planejamento e Arquitetura.
+2. Ingestão e Preparação.
+3. Inteligência Artificial.
+4. Geração de Conteúdo.
+5. Automação e OCI.
+6. Interface e Visualização.
+7. Testes, Documentação e Apresentação.
 
-A organização do trabalho considerará:
-
-- Prioridade das atividades.
-- Responsável principal.
-- Dependências técnicas.
-- Critérios de aceitação.
-- Status de execução.
-- Evidências de conclusão.
+Cada atividade será acompanhada por prioridade, responsável, dependências, critérios de aceitação e status de execução.
+Branches, commits e Pull Requests poderão ser associados aos cards para garantir rastreabilidade.
 
 ---
 
 ## 🗺️ Roadmap inicial
+- [ ] Validar o escopo revisado do detector.
+- [ ] Configurar o repositório e os padrões de colaboração.
+- [ ] Validar a arquitetura Python + LLM + Streamlit + OCI.
+- [ ] Preparar os dados de demonstração.
+- [ ] Implementar ingestão CSV/JSON.
+- [ ] Desenvolver análise de sentimentos e tópicos.
+- [ ] Implementar detecção de histórias de sucesso.
+- [ ] Implementar extração de fatos, resultados e citações.
+- [ ] Desenvolver geração de testemunhos.
+- [ ] Desenvolver geração de cases de sucesso.
+- [ ] Implementar orquestração automatizada.
+- [ ] Desenvolver interface de curadoria.
+- [ ] Integrar OCI Object Storage.
+- [ ] Executar testes funcionais e de integração.
+- [ ] Demonstrar três casos de uso.
+- [ ] Finalizar documentação e apresentação.
 
-- [ ] Validação do escopo do MVP.
-- [ ] Estruturação do repositório GitHub.
-- [ ] Definição da arquitetura técnica.
-- [ ] Preparação dos dados de demonstração.
-- [ ] Implementação da ingestão.
-- [ ] Desenvolvimento dos módulos de análise com IA.
-- [ ] Implementação da geração de conteúdo.
-- [ ] Desenvolvimento da interface.
-- [ ] Integração com OCI Object Storage.
-- [ ] Integração dos módulos e automação do fluxo.
-- [ ] Testes funcionais e de integração.
-- [ ] Preparação da demonstração final.
+---
+
+## 🧪 Casos de demonstração
+
+.Caso 1 — Conquista profissional
+Identificação de um relato de obtenção de emprego após participação em uma comunidade de aprendizagem.
+Resultado esperado: extração da conquista, identificação de evidências e geração de testemunho.
+
+.Caso 2 — Projeto de destaque
+Identificação de um projeto tecnológico relevante desenvolvido por participantes da comunidade.
+Resultado esperado: extração de informações e geração de case de sucesso.
+
+.Caso 3 — Superação e transformação profissional
+Identificação de uma trajetória de desenvolvimento, superação de dificuldades ou transição de carreira.
+Resultado esperado: geração de testemunho e sugestão de publicação para LinkedIn.
+
+As demonstrações utilizarão dados simulados ou autorizados.
 
 ---
 
@@ -265,19 +295,21 @@ A organização do trabalho considerará:
 Ao final do desenvolvimento, o CommunityLab deverá demonstrar a capacidade de:
 
 - Processar interações provenientes de comunidades digitais.
-- Identificar sentimentos, tópicos e informações relevantes.
-- Transformar insights em conteúdos de marketing.
-- Disponibilizar os resultados para revisão e curadoria.
-- Executar um fluxo integrado e demonstrável utilizando os recursos definidos para o Hackathon.
+- Identificar histórias de sucesso e testemunhos relevantes.
+- Classificar sentimentos e tópicos.
+- Extrair fatos, resultados e citações rastreáveis.
+- Transformar histórias em ativos de marketing.
+- Permitir revisão e curadoria humana.
+- Armazenar e recuperar os conteúdos no OCI Object Storage.
+- Executar um fluxo automatizado, integrado e demonstrável.
+
+O objetivo é reduzir o esforço manual de curadoria e ampliar o aproveitamento das histórias produzidas pelas comunidades.
 
 ---
 
 ## 📄 Licença
 
 A licença do projeto será definida pela equipe, considerando as regras do Hackathon e a estratégia de disponibilização do código-fonte.
-
----
-
-**CommunityLab — Da conversa à inteligência. Da inteligência à ação.**
-
+CommunityLab — Histórias que inspiram. Inteligência que transforma.
 Projeto desenvolvido para o Hackathon ONE G10 — Oracle Next Education & Alura.
+Equipe 18 | Prazo final: 24 de novembro de 2026.
