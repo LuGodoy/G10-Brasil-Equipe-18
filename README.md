@@ -80,8 +80,7 @@ Desenvolver e demonstrar uma solução funcional capaz de identificar histórias
 - [ ] Demonstração de pelo menos três casos de uso.
 
 As funcionalidades representam o escopo planejado e não implementações já concluídas.
-Limites do MVP
-A primeira versão priorizará arquivos CSV/JSON, sem exigir integração direta com Discord, Slack ou outras plataformas.
+Limites do MVP, a primeira versão priorizará arquivos CSV/JSON, sem exigir integração direta com Discord, Slack ou outras plataformas.
 Publicação automática, dashboards avançados e monitoramento em tempo real poderão ser desenvolvidos futuramente.
 
 ---
