@@ -91,6 +91,7 @@ Desenvolver e demonstrar uma solução funcional capaz de identificar histórias
 
 O fluxo proposto é:
 
+````
 **Mensagens de comunidades digitais — CSV / JSON**
                     ↓
        **Ingestão e preparação dos dados**
@@ -106,6 +107,8 @@ O fluxo proposto é:
        **Interface de visualização e curadoria**
                     ↓
  Persistência e recuperação no OCI Object Storage
+````
+
 A orquestração será realizada por scripts Python, com tratamento de erros e fluxos condicionais.
 A arquitetura técnica definitiva será validada durante o desenvolvimento.
 
