@@ -135,3 +135,85 @@ As responsabilidades técnicas deverão ser alinhadas com as respectivas integra
 ---
 
 **Resultado da etapa:** três referências metodológicas aprovadas pelo responsável funcional, prontas para revisão coletiva e expansão da bateria de testes.
+
+---
+
+---
+
+## 9. Validação complementar — Cenários negativos
+
+**Data:** 19/10/2026  
+**Responsável funcional:** Marcus — Project Manager  
+**Status:** Decisões metodológicas validadas; implementação e testes automatizados pendentes.
+
+### 9.1 Objetivo
+
+Verificar a resposta esperada do CQF diante de situações que exigem bloqueio, esclarecimento ou restrição de publicação.
+
+### 9.2 Resultados
+
+| Caso | R | C | I | E | CQF Score | Decisão |
+|---|---:|---:|---:|---:|---:|---|
+| CQF-NEG-001 | 2 | 1 | 2 | 1 | 29 | Solicitar informações adicionais |
+| CQF-NEG-002 | 4 | 2 | 2 | 1 | 44 | Bloquear aprovação até esclarecer contradição |
+| CQF-NEG-003 | 5 | 5 | 5 | 4 | 94 | Bloquear publicação até registrar autorização |
+
+**Legenda:** R = Relevância; C = Completude; I = Clareza e impacto; E = Evidências.
+
+### 9.3 CQF-NEG-001 — Evidências insuficientes
+
+**Problema:** relato genérico sem detalhes suficientes sobre a conquista.
+
+**Decisão:** solicitar informações adicionais antes de reavaliar.
+
+**Regra funcional:** o sistema não deve inventar fatos para completar uma narrativa incompleta.
+
+**Resultado esperado:** história pendente de complementação, sem aprovação como caso de sucesso confirmado.
+
+### 9.4 CQF-NEG-002 — Informações contraditórias
+
+**Problema:** a mesma interação apresenta afirmações conflitantes sobre a conclusão de uma contratação.
+
+**Decisão:** bloquear aprovação e solicitar esclarecimento.
+
+**Regra funcional:** contradições relevantes não resolvidas impedem a aprovação editorial, independentemente da pontuação.
+
+**Resultado esperado:** preservar as evidências conflitantes e permitir reavaliação após esclarecimento.
+
+### 9.5 CQF-NEG-003 — Ausência de autorização
+
+**Problema:** história com alta pontuação editorial, mas sem registro de autorização para publicação.
+
+**Decisão:** bloquear publicação até obter e registrar autorização apropriada.
+
+**Regra funcional:** a autorização é independente do CQF Score e da aprovação editorial.
+
+**Resultado esperado:** permitir análise e curadoria interna, respeitadas as regras de tratamento de dados, mas impedir divulgação pública não autorizada.
+
+## 10. Regras de governança confirmadas
+
+A primeira bateria de testes estabelece três regras funcionais:
+
+**RG-01 — Integridade das evidências:** informações ausentes não podem ser inventadas pela IA.
+
+**RG-02 — Consistência factual:** contradições relevantes não resolvidas bloqueiam a aprovação.
+
+**RG-03 — Autorização de publicação:** a ausência de autorização apropriada bloqueia a divulgação, independentemente da pontuação editorial.
+
+Essas regras deverão ser traduzidas em critérios de aceitação e testes técnicos antes da homologação do MVP.
+
+## 11. Síntese dos seis cenários
+
+Foram avaliados três cenários positivos e três negativos, todos simulados.
+
+As seis avaliações foram aceitas pelo responsável funcional como referências metodológicas.
+
+Os testes negativos demonstram que a priorização editorial não deve ser confundida com permissão para aprovar ou publicar conteúdos.
+
+**Limitação:** a validação foi conduzida manualmente, sem avaliadores independentes e sem execução do pipeline do CommunityLab. Portanto, não comprova que o software já implementa os comportamentos descritos.
+
+## 12. Próxima etapa recomendada
+
+Submeter as regras RG-01, RG-02 e RG-03 à Equipe 18 para revisão funcional e técnica.
+
+Após alinhamento, transformar as regras em casos de teste executáveis, com entradas, saídas esperadas e critérios de aprovação verificáveis.
