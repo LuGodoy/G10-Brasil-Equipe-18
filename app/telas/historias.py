@@ -20,7 +20,7 @@ def _revisar(hid):
     ss = st.session_state
     ss.historia_atual = hid
     ss.mostrar_copia = False
-    ir_para("curadoria")
+    ir_para("estudio")
 
 
 def _status_da_historia(h):
@@ -85,7 +85,7 @@ def render():
                 md(f'<b>{len(h["ativos"])} ativos gerados</b> &nbsp;{_status_da_historia(h)}<br>'
                    f'<span class="cl-muted">{" · ".join(esc(a["nome"]) for a in h["ativos"])}</span>')
             with botao:
-                st.button("→ Revisar", key=f"rev_{h['id']}", on_click=_revisar, args=(h["id"],))
+                st.button("→ Ver no Estúdio", key=f"rev_{h['id']}", on_click=_revisar, args=(h["id"],))
 
     aprov = contagem["aprovado"]
     texto = "Nenhum ativo aprovado ou publicado" if aprov == 0 else f"{aprov} ativo(s) aprovado(s) · nenhum publicado"

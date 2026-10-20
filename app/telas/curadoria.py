@@ -67,17 +67,24 @@ def _coluna_rascunhos(h, ativo, status):
     hid, aid = h["id"], ativo["id"]
     editavel = status == "rascunho"
     if ativo["tipo"] == "texto":
-        campo(st.text_area, "Texto do post" if "LinkedIn" in ativo["nome"] else "Texto",
+        campo(st.text_area, "Texto do case" if "Case" in ativo["nome"] else "Texto",
               _chave(hid, aid, "texto"), ativo["campos"]["texto"], height=240, disabled=not editavel)
         texto_atual = valor(_chave(hid, aid, "texto"), "")
         st.caption(f"{len(texto_atual)} caracteres")
         copiavel = texto_atual
-    else:
-        titulo = valor(_chave(hid, aid, "titulo"), ativo["campos"]["titulo"])
-        frase = valor(_chave(hid, aid, "frase"), ativo["campos"]["frase"])
+    elif ativo["tipo"] == "testemunho":
+        titulo = campo(st.text_input, "Título", _chave(hid, aid, "titulo"), ativo["campos"]["titulo"], disabled=not editavel)
+        descricao = campo(st.text_area, "Descrição", _chave(hid, aid, "descricao"), ativo["campos"]["descricao"], height=100, disabled=not editavel)
+        citacao = campo(st.text_area, "Citação", _chave(hid, aid, "citacao"), ativo["campos"]["citacao"], height=60, disabled=not editavel)
+        total = len(valor(_chave(hid, aid, "titulo"), "")) + len(valor(_chave(hid, aid, "descricao"), "")) + len(valor(_chave(hid, aid, "citacao"), ""))
+        st.caption(f"{total} caracteres no total")
+        copiavel = f"{valor(_chave(hid, aid, 'titulo'), '')}\n\n{valor(_chave(hid, aid, 'descricao'), '')}\n\n\"{valor(_chave(hid, aid, 'citacao'), '')}\""
+    else:  # card (legado)
+        titulo = valor(_chave(hid, aid, "titulo"), ativo["campos"].get("titulo", ""))
+        frase = valor(_chave(hid, aid, "frase"), ativo["campos"].get("frase", ""))
         _preview_card(titulo, frase, h["autor"])
-        campo(st.text_input, "Título", _chave(hid, aid, "titulo"), ativo["campos"]["titulo"], disabled=not editavel)
-        campo(st.text_input, "Frase de destaque", _chave(hid, aid, "frase"), ativo["campos"]["frase"], disabled=not editavel)
+        campo(st.text_input, "Título", _chave(hid, aid, "titulo"), ativo["campos"].get("titulo", ""), disabled=not editavel)
+        campo(st.text_input, "Frase de destaque", _chave(hid, aid, "frase"), ativo["campos"].get("frase", ""), disabled=not editavel)
         copiavel = f'{valor(_chave(hid, aid, "titulo"), "")}\n{valor(_chave(hid, aid, "frase"), "")}'
     md(chip("Rascunho gerado por IA", "purple"))
     return copiavel
