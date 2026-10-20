@@ -26,5 +26,13 @@ def validar_interacao(interacao: Dict[str, Any], schema_interacao: Dict[str, Any
     return validar_objeto_contra_schema(interacao, schema_interacao)
 
 def validar_ativo(ativo: Dict[str, Any], schema_ativo: Dict[str, Any]) -> Tuple[bool, List[str]]:
-    """Valida especificamente um ativo gerado contra o ativo_gerado.schema.json."""
+    """Valida especificamente um ativo gerado contra o ativo_gerado_schema.json."""
     return validar_objeto_contra_schema(ativo, schema_ativo)
+
+def validar_historia(historia: Dict[str, Any], schema_historia: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """Valida especificamente uma história detectada contra historia_detectada.json."""
+    return validar_objeto_contra_schema(historia, schema_historia)
+
+def validar_avaliacao_cqf(avaliacao: Dict[str, Any], schema_cqf: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """Valida uma avaliação editorial contra avaliacao_cqf_schema.json."""
+    return validar_objeto_contra_schema(avaliacao, schema_cqf)
