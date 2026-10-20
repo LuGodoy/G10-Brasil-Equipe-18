@@ -17,7 +17,21 @@ from src import (
     carregar_schema,
     validar_interacao,
     validar_ativo,
+    validar_historia,
+    validar_avaliacao_cqf,
+    AtivoGerado,
+    AvaliacaoCQF,
+    HistoriaDetectada,
+    Citacao,
+    Interacao,
+    calcular_cqf_score,
+    validar_integridade_evidencias,
+    avaliar_aprovacao_editorial,
+    validar_liberacao_publicacao,
+    consolidar_decisao_governança,
 )
+
+
 
 def test_leitura_bytes():
     # Testa utf-8 com acentuação e quebras de linha
@@ -572,6 +586,290 @@ def test_modulos_src_pipeline():
     assert hasattr(src.generation, "AtivoGerado")
     assert hasattr(src.orchestration, "dividir_em_lotes")
     assert hasattr(src.storage, "carregar_schema")
+
+
+def test_ativo_gerado_novos_tipos_cqf():
+    base_dir = Path(__file__).parent.parent
+    schema_ativo = carregar_schema(str(base_dir / "schemas/ativo_gerado_schema.json"))
+
+    for tipo in ["testemunho_estruturado", "case_sucesso"]:
+        ativo_dict = {
+            "versao_schema": "1.0",
+            "id_ativo": "ativo_101",
+            "tipo": tipo,
+            "titulo": "História de Sucesso",
+            "texto": "Texto do testemunho com evidências rastreáveis.",
+            "interacoes_origem": [1, 2],
+            "status_revisao": "pendente",
+            "criado_em": "2026-10-20T10:00:00Z",
+            "id_avaliacao_cqf": "cqf_001",
+        }
+        valido, erros = validar_ativo(ativo_dict, schema_ativo)
+        assert valido, f"Falha para tipo {tipo}: {erros}"
+
+        # Teste com Pydantic
+        modelo = AtivoGerado.model_validate(ativo_dict)
+        assert modelo.tipo == tipo
+        assert modelo.id_avaliacao_cqf == "cqf_001"
+
+
+def test_avaliacao_cqf_schema_e_modelo():
+    base_dir = Path(__file__).parent.parent
+    schema_cqf = carregar_schema(str(base_dir / "schemas/avaliacao_cqf_schema.json"))
+
+    dado_cqf = {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_001",
+        "id_historia": "historia_001",
+        "id_ativo": "ativo_001",
+        "versao_framework": "1.0",
+        "nota_relevancia": 5.0,
+        "nota_completude": 4.0,
+        "nota_clareza_impacto": 5.0,
+        "nota_evidencias": 4.0,
+        "cqf_score": 89.0,
+        "classificacao_editorial": "alta_prioridade",
+        "status_validacao_factual": "conforme",
+        "status_curadoria": "aprovado",
+        "status_autorizacao_publicacao": "autorizada",
+        "decisao_editorial": "aprovado",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-20T11:00:00Z",
+        "observacoes": "Relato aprovado com evidências validadas."
+    }
+
+    valido, erros = validar_avaliacao_cqf(dado_cqf, schema_cqf)
+    assert valido, f"Erros no schema CQF: {erros}"
+
+    # Validação Pydantic
+    obj = AvaliacaoCQF.model_validate(dado_cqf)
+    assert obj.cqf_score == 89.0
+    assert obj.nota_relevancia == 5.0
+
+    # Teste de nota inválida (> 5.0) no Pydantic
+    dado_invalido = dado_cqf.copy()
+    dado_invalido["nota_relevancia"] = 6.0
+    try:
+        AvaliacaoCQF.model_validate(dado_invalido)
+        assert False, "Deveria ter falhado com nota_relevancia > 5.0"
+    except Exception:
+        pass
+
+    # Teste de nota inválida no JSON Schema
+    valido_invalido, erros_invalido = validar_avaliacao_cqf(dado_invalido, schema_cqf)
+    assert not valido_invalido
+
+
+def test_cqf_score_casos_positivos_validacao():
+    # CQF-001: Conquista profissional (R=5, C=4, I=5, E=4) -> 89.0 (Alta)
+    res_001 = calcular_cqf_score(relevancia=5, completude=4, clareza_impacto=5, evidencias=4)
+    assert res_001["cqf_score"] == 89.0
+    assert res_001["classificacao_editorial"] == "alta_prioridade"
+
+    # CQF-002: Projeto de destaque (R=4, C=4, I=4, E=3) -> 74.0 (Média)
+    res_002 = calcular_cqf_score(relevancia=4, completude=4, clareza_impacto=4, evidencias=3)
+    assert res_002["cqf_score"] == 74.0
+    assert res_002["classificacao_editorial"] == "prioridade_media"
+
+    # CQF-003: Superação (R=5, C=5, I=5, E=4) -> 94.0 (Alta)
+    res_003 = calcular_cqf_score(relevancia=5, completude=5, clareza_impacto=5, evidencias=4)
+    assert res_003["cqf_score"] == 94.0
+    assert res_003["classificacao_editorial"] == "alta_prioridade"
+
+
+def test_cqf_score_casos_negativos_validacao():
+    # CQF-NEG-001: Evidências insuficientes (R=2, C=1, I=2, E=1) -> 29.0 (Baixa)
+    res_neg_001 = calcular_cqf_score(relevancia=2, completude=1, clareza_impacto=2, evidencias=1)
+    assert res_neg_001["cqf_score"] == 29.0
+    assert res_neg_001["classificacao_editorial"] == "baixa_prioridade"
+
+    # CQF-NEG-002: Informações contraditórias (R=4, C=2, I=2, E=1) -> 44.0 (Baixa)
+    res_neg_002 = calcular_cqf_score(relevancia=4, completude=2, clareza_impacto=2, evidencias=1)
+    assert res_neg_002["cqf_score"] == 44.0
+    assert res_neg_002["classificacao_editorial"] == "baixa_prioridade"
+
+    # CQF-NEG-003: Ausência de autorização (R=5, C=5, I=5, E=4) -> 94.0 (Alta pontuação editorial)
+    res_neg_003 = calcular_cqf_score(relevancia=5, completude=5, clareza_impacto=5, evidencias=4)
+    assert res_neg_003["cqf_score"] == 94.0
+
+
+def test_cqf_score_validacao_limites():
+    # Nota negativa
+    with pytest.raises(ValueError):
+        calcular_cqf_score(relevancia=-1, completude=3, clareza_impacto=3, evidencias=3)
+
+    # Nota acima de 5
+    with pytest.raises(ValueError):
+        calcular_cqf_score(relevancia=3, completude=5.5, clareza_impacto=3, evidencias=3)
+
+
+def test_regra_rg01_integridade_evidencias():
+    interacoes = [
+        Interacao(
+            id=1,
+            autor_id="membro_001",
+            data="2026-10-15T10:00:00Z",
+            texto="Consegui minha primeira vaga como desenvolvedora júnior após 6 meses de estudo."
+        )
+    ]
+
+    # Citação literal presente -> Válido
+    historia_valida = HistoriaDetectada(
+        id_historia="historia_001",
+        tipo="conquista_profissional",
+        resumo="Conquista de vaga",
+        interacoes_origem=[1],
+        fatos=["Foi contratada como desenvolvedora júnior"],
+        resultados=["Primeira vaga em tech"],
+        citacoes=[
+            Citacao(
+                texto="Consegui minha primeira vaga como desenvolvedora júnior",
+                id_interacao=1
+            )
+        ],
+        autorizacao_divulgacao="autorizada",
+        status_revisao="aprovado"
+    )
+    valido, erros = validar_integridade_evidencias(historia_valida, interacoes)
+    assert valido
+    assert len(erros) == 0
+
+    # Citação inventada/alterada (violação RG-01) -> Inválido
+    historia_inventada = HistoriaDetectada(
+        id_historia="historia_002",
+        tipo="conquista_profissional",
+        resumo="Conquista com alucinação",
+        interacoes_origem=[1],
+        fatos=["Fato inventado"],
+        citacoes=[
+            Citacao(
+                texto="Recebi um salário de 10 mil reais logo no primeiro mês",
+                id_interacao=1
+            )
+        ],
+        autorizacao_divulgacao="autorizada",
+        status_revisao="aprovado"
+    )
+    valido_inv, erros_inv = validar_integridade_evidencias(historia_inventada, interacoes)
+    assert not valido_inv
+    assert any("RG-01 Violação" in e for e in erros_inv)
+
+
+def test_regra_rg02_consistencia_factual_bloqueio():
+    # Contradição detectada bloqueia aprovação editorial
+    pode_aprovar, msg = avaliar_aprovacao_editorial(
+        status_validacao_factual="contradicao_detectada",
+        status_curadoria="aprovado"
+    )
+    assert not pode_aprovar
+    assert "Bloqueio RG-02" in msg
+
+    # Evidências insuficientes não devem ser aprovadas diretamente
+    pode_aprovar_insuf, msg_insuf = avaliar_aprovacao_editorial(
+        status_validacao_factual="evidencias_insuficientes",
+        status_curadoria="aprovado"
+    )
+    assert not pode_aprovar_insuf
+
+
+def test_regra_rg03_trava_publicacao():
+    # CQF-NEG-003: Score 94, curadoria aprovada, mas autorização pendente -> BLOQUEADO
+    pode_publicar, msg = validar_liberacao_publicacao(
+        status_curadoria="aprovado",
+        status_autorizacao="pendente",
+        cqf_score=94.0
+    )
+    assert not pode_publicar
+    assert "Bloqueio RG-03" in msg
+
+    # Autorizada -> LIBERADO
+    pode_publicar_ok, msg_ok = validar_liberacao_publicacao(
+        status_curadoria="aprovado",
+        status_autorizacao="autorizada",
+        cqf_score=94.0
+    )
+    assert pode_publicar_ok
+    assert "Liberado" in msg_ok
+
+
+def test_consolidar_decisao_governança():
+    # Caso negativo 1: evidências insuficientes
+    d1 = consolidar_decisao_governança(29.0, "evidencias_insuficientes", "pendente", "pendente")
+    assert d1 == "solicitar_informacoes"
+
+    # Caso negativo 2: contradição
+    d2 = consolidar_decisao_governança(44.0, "contradicao_detectada", "pendente", "pendente")
+    assert d2 == "bloqueado_contradicao"
+
+    # Caso negativo 3: score alto aprovado mas sem autorização
+    d3 = consolidar_decisao_governança(94.0, "conforme", "aprovado", "pendente")
+    assert d3 == "bloqueado_sem_autorizacao"
+
+    # Caso positivo: aprovado e autorizado
+    d_ok = consolidar_decisao_governança(94.0, "conforme", "aprovado", "autorizada")
+    assert d_ok == "aprovado"
+
+
+def test_cenarios_cqf_json_validacao_completa():
+    base_dir = Path(__file__).parent.parent
+    arquivo_cqf = base_dir / "data/samples/cenarios_cqf.json"
+    assert arquivo_cqf.exists(), "Arquivo data/samples/cenarios_cqf.json não encontrado"
+
+    dados = json.loads(arquivo_cqf.read_text(encoding="utf-8"))
+    cenarios = dados.get("cenarios", [])
+    assert len(cenarios) == 6, f"Esperados 6 cenários CQF, encontrados: {len(cenarios)}"
+
+    schema_interacao = carregar_schema(str(base_dir / "schemas/interacao_schema.json"))
+    schema_historia = carregar_schema(str(base_dir / "schemas/historia_detectada.json"))
+    schema_cqf = carregar_schema(str(base_dir / "schemas/avaliacao_cqf_schema.json"))
+    schema_ativo = carregar_schema(str(base_dir / "schemas/ativo_gerado_schema.json"))
+
+    scores_esperados = {
+        "CQF-001": 89.0,
+        "CQF-002": 74.0,
+        "CQF-003": 94.0,
+        "CQF-NEG-001": 29.0,
+        "CQF-NEG-002": 44.0,
+        "CQF-NEG-003": 94.0,
+    }
+
+    for c in cenarios:
+        caso_id = c["id_caso"]
+        interacao = c["interacao"]
+        historia = c["historia"]
+        avaliacao = c["avaliacao_cqf"]
+
+        # 1. Validação de schemas
+        val_i, err_i = validar_interacao(interacao, schema_interacao)
+        assert val_i, f"[{caso_id}] Erro no schema de interação: {err_i}"
+
+        val_h, err_h = validar_historia(historia, schema_historia)
+        assert val_h, f"[{caso_id}] Erro no schema de história: {err_h}"
+
+        val_cqf, err_cqf = validar_avaliacao_cqf(avaliacao, schema_cqf)
+        assert val_cqf, f"[{caso_id}] Erro no schema CQF: {err_cqf}"
+
+        if "ativo" in c:
+            val_a, err_a = validar_ativo(c["ativo"], schema_ativo)
+            assert val_a, f"[{caso_id}] Erro no schema de ativo: {err_a}"
+
+        # 2. Recálculo e conferência matemática do score
+        calc = calcular_cqf_score(
+            relevancia=avaliacao["nota_relevancia"],
+            completude=avaliacao["nota_completude"],
+            clareza_impacto=avaliacao["nota_clareza_impacto"],
+            evidencias=avaliacao["nota_evidencias"],
+        )
+        assert calc["cqf_score"] == scores_esperados[caso_id], (
+            f"[{caso_id}] Score recalculado {calc['cqf_score']} != esperado {scores_esperados[caso_id]}"
+        )
+        assert calc["classificacao_editorial"] == avaliacao["classificacao_editorial"]
+
+        # 3. Integridade das evidências (RG-01)
+        val_ev, err_ev = validar_integridade_evidencias(historia, [interacao])
+        assert val_ev, f"[{caso_id}] Falha de integridade das evidências: {err_ev}"
+
+
 
 
 
