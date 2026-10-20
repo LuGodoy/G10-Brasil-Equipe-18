@@ -1,0 +1,375 @@
+{
+  "versao_schema": "1.0",
+  "descricao": "Cenários de referência oficial para validação do CommunityLab Quality Framework (CQF v1.0).",
+  "aviso": "Dados 100% simulados para demonstração metodológica.",
+  "cenarios": [
+    {
+      "id_caso": "CQF-001",
+      "tipo_cenario": "positivo",
+      "categoria": "conquista_profissional",
+      "titulo": "Primeiro Emprego em Tecnologia",
+      "descricao": "Relato simulado sobre a obtenção do primeiro emprego em tecnologia após período de estudos e projetos.",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 501,
+        "autor_id": "membro_501",
+        "data": "2026-10-18T10:00:00Z",
+        "origem": "discord",
+        "texto": "Depois de 8 meses de estudo intenso no programa ONE e de desenvolver dois projetos práticos no GitHub, finalmente recebi minha proposta e fui contratada como Desenvolvedora Júnior!",
+        "status_revisao": "aprovado"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_501",
+        "tipo": "conquista_profissional",
+        "resumo": "Estudante conquista primeira vaga de desenvolvedora júnior após 8 meses de estudo e portfólio no GitHub.",
+        "interacoes_origem": [501],
+        "fatos": [
+          "Estudou por 8 meses no programa ONE",
+          "Desenvolveu dois projetos práticos no GitHub",
+          "Foi contratada como Desenvolvedora Júnior"
+        ],
+        "resultados": ["Contratação como Desenvolvedora Júnior"],
+        "citacoes": [
+          {
+            "texto": "fui contratada como Desenvolvedora Júnior",
+            "id_interacao": 501
+          }
+        ],
+        "autorizacao_divulgacao": "autorizada",
+        "confianca": 0.95,
+        "status_revisao": "aprovado"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_501",
+        "id_historia": "historia_501",
+        "id_ativo": "ativo_501",
+        "versao_framework": "1.0",
+        "nota_relevancia": 5.0,
+        "nota_completude": 4.0,
+        "nota_clareza_impacto": 5.0,
+        "nota_evidencias": 4.0,
+        "cqf_score": 89.0,
+        "classificacao_editorial": "alta_prioridade",
+        "status_validacao_factual": "conforme",
+        "status_curadoria": "aprovado",
+        "status_autorizacao_publicacao": "autorizada",
+        "decisao_editorial": "aprovado",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T14:00:00Z",
+        "observacoes": "Conquista relevante, narrativa clara e evidências textuais rastreáveis."
+      },
+      "ativo": {
+        "versao_schema": "1.0",
+        "id_ativo": "ativo_501",
+        "tipo": "testemunho_estruturado",
+        "titulo": "Da dedicação à contratação como Dev Júnior",
+        "texto": "Após 8 meses de dedicação e foco em projetos no GitHub, nossa aluna compartilhou sua conquista: 'fui contratada como Desenvolvedora Júnior!'",
+        "interacoes_origem": [501],
+        "status_revisao": "aprovado",
+        "id_avaliacao_cqf": "cqf_501",
+        "criado_em": "2026-10-19T14:30:00Z"
+      }
+    },
+    {
+      "id_caso": "CQF-002",
+      "tipo_cenario": "positivo",
+      "categoria": "projeto_destaque",
+      "titulo": "Entrega de Protótipo em Hackathon",
+      "descricao": "Participação em hackathon com organização, documentação e entrega de protótipo funcional.",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 502,
+        "autor_id": "membro_502",
+        "data": "2026-10-18T11:30:00Z",
+        "origem": "discord",
+        "texto": "Nosso grupo fechou a entrega do protótipo no prazo. Fiquei responsável pela arquitetura e documentação da API, e ver a solução rodando de ponta a ponta foi incrível.",
+        "status_revisao": "aprovado"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_502",
+        "tipo": "projeto_destaque",
+        "resumo": "Membro atua na arquitetura e documentação de API para protótipo de hackathon entregue no prazo.",
+        "interacoes_origem": [502],
+        "fatos": [
+          "Entrega do protótipo concluída no prazo",
+          "Responsável por arquitetura e documentação de API"
+        ],
+        "resultados": ["Solução executando de ponta a ponta"],
+        "citacoes": [
+          {
+            "texto": "Fiquei responsável pela arquitetura e documentação da API",
+            "id_interacao": 502
+          }
+        ],
+        "autorizacao_divulgacao": "autorizada",
+        "confianca": 0.9,
+        "status_revisao": "aprovado"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_502",
+        "id_historia": "historia_502",
+        "id_ativo": "ativo_502",
+        "versao_framework": "1.0",
+        "nota_relevancia": 4.0,
+        "nota_completude": 4.0,
+        "nota_clareza_impacto": 4.0,
+        "nota_evidencias": 3.0,
+        "cqf_score": 74.0,
+        "classificacao_editorial": "prioridade_media",
+        "status_validacao_factual": "conforme",
+        "status_curadoria": "aprovado",
+        "status_autorizacao_publicacao": "autorizada",
+        "decisao_editorial": "aprovado",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T14:15:00Z",
+        "observacoes": "Projeto relevante e estruturado; evidências baseadas apenas no relato textual."
+      },
+      "ativo": {
+        "versao_schema": "1.0",
+        "id_ativo": "ativo_502",
+        "tipo": "case_sucesso",
+        "titulo": "Destaque Técnico em Equipe no Hackathon",
+        "texto": "Durante a maratona, a organização e arquitetura técnica permitiram a entrega do protótipo no prazo.",
+        "interacoes_origem": [502],
+        "status_revisao": "aprovado",
+        "id_avaliacao_cqf": "cqf_502",
+        "criado_em": "2026-10-19T14:40:00Z"
+      }
+    },
+    {
+      "id_caso": "CQF-003",
+      "tipo_cenario": "positivo",
+      "categoria": "superacao",
+      "titulo": "Transição de Carreira e Estágio em Dados",
+      "descricao": "Transição de carreira após desemprego, superando barreiras e conquistando vaga de estágio em dados.",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 503,
+        "autor_id": "membro_503",
+        "data": "2026-10-18T14:00:00Z",
+        "origem": "discord",
+        "texto": "Estava desempregada há mais de um ano e recomeçando do zero. Conciliei cuidar dos filhos com as aulas à noite e acabei de passar no processo seletivo para estágio em análise de dados!",
+        "status_revisao": "aprovado"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_503",
+        "tipo": "superacao",
+        "resumo": "Transição de carreira após um ano de desemprego culminando em aprovação em estágio em dados.",
+        "interacoes_origem": [503],
+        "fatos": [
+          "Estava desempregada há mais de um ano",
+          "Estudou à noite conciliando com rotina familiar",
+          "Aprovada em estágio em análise de dados"
+        ],
+        "resultados": ["Aprovação em estágio em análise de dados"],
+        "citacoes": [
+          {
+            "texto": "acabei de passar no processo seletivo para estágio em análise de dados",
+            "id_interacao": 503
+          }
+        ],
+        "autorizacao_divulgacao": "autorizada",
+        "confianca": 0.98,
+        "status_revisao": "aprovado"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_503",
+        "id_historia": "historia_503",
+        "id_ativo": "ativo_503",
+        "versao_framework": "1.0",
+        "nota_relevancia": 5.0,
+        "nota_completude": 5.0,
+        "nota_clareza_impacto": 5.0,
+        "nota_evidencias": 4.0,
+        "cqf_score": 94.0,
+        "classificacao_editorial": "alta_prioridade",
+        "status_validacao_factual": "conforme",
+        "status_curadoria": "aprovado",
+        "status_autorizacao_publicacao": "autorizada",
+        "decisao_editorial": "aprovado",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T14:30:00Z",
+        "observacoes": "Narrativa completa, transformação marcante e sustentação nas mensagens."
+      },
+      "ativo": {
+        "versao_schema": "1.0",
+        "id_ativo": "ativo_503",
+        "tipo": "testemunho_estruturado",
+        "titulo": "Recomeço e Conquista: A Força da Transição de Carreira",
+        "texto": "Após um ano desafiador de busca e estudos intensos, nossa comunidade celebra mais uma virada: aprovação em estágio de dados!",
+        "interacoes_origem": [503],
+        "status_revisao": "aprovado",
+        "id_avaliacao_cqf": "cqf_503",
+        "criado_em": "2026-10-19T14:50:00Z"
+      }
+    },
+    {
+      "id_caso": "CQF-NEG-001",
+      "tipo_cenario": "negativo",
+      "categoria": "conquista_profissional",
+      "titulo": "Evidências Insuficientes",
+      "descricao": "Relato vago e genérico sem detalhes suficientes sobre a conquista (RG-01).",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 601,
+        "autor_id": "membro_601",
+        "data": "2026-10-18T16:00:00Z",
+        "origem": "discord",
+        "texto": "Deu tudo certo com a vaga lá.",
+        "status_revisao": "pendente"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_601",
+        "tipo": "conquista_profissional",
+        "resumo": "Membro menciona que deu tudo certo com vaga, sem detalhes da área ou empresa.",
+        "interacoes_origem": [601],
+        "fatos": ["Membro mencionou que deu certo"],
+        "resultados": [],
+        "citacoes": [
+          {
+            "texto": "Deu tudo certo com a vaga lá",
+            "id_interacao": 601
+          }
+        ],
+        "autorizacao_divulgacao": "pendente",
+        "confianca": 0.65,
+        "status_revisao": "pendente"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_601",
+        "id_historia": "historia_601",
+        "versao_framework": "1.0",
+        "nota_relevancia": 2.0,
+        "nota_completude": 1.0,
+        "nota_clareza_impacto": 2.0,
+        "nota_evidencias": 1.0,
+        "cqf_score": 29.0,
+        "classificacao_editorial": "baixa_prioridade",
+        "status_validacao_factual": "evidencias_insuficientes",
+        "status_curadoria": "solicitar_ajustes",
+        "status_autorizacao_publicacao": "pendente",
+        "decisao_editorial": "solicitar_informacoes",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T15:00:00Z",
+        "observacoes": "Relato genérico sem detalhes suficientes. Solicitar informações adicionais (RG-01)."
+      }
+    },
+    {
+      "id_caso": "CQF-NEG-002",
+      "tipo_cenario": "negativo",
+      "categoria": "conquista_profissional",
+      "titulo": "Informações Contraditórias",
+      "descricao": "Afirmações conflitantes sobre o desfecho da contratação (RG-02).",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 602,
+        "autor_id": "membro_602",
+        "data": "2026-10-18T17:00:00Z",
+        "origem": "discord",
+        "texto": "Fui aprovado na vaga de engenheiro de dados hoje de manhã, mas à tarde a empresa cancelou o processo seletivo inteiro.",
+        "status_revisao": "pendente"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_602",
+        "tipo": "conquista_profissional",
+        "resumo": "Aprovação em processo seletivo seguida de cancelamento da vaga pela empresa.",
+        "interacoes_origem": [602],
+        "fatos": [
+          "Membro relata aprovação",
+          "Empresa cancelou processo seletivo"
+        ],
+        "resultados": ["Processo cancelado"],
+        "citacoes": [
+          {
+            "texto": "a empresa cancelou o processo seletivo inteiro",
+            "id_interacao": 602
+          }
+        ],
+        "autorizacao_divulgacao": "pendente",
+        "confianca": 0.7,
+        "status_revisao": "rejeitado"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_602",
+        "id_historia": "historia_602",
+        "versao_framework": "1.0",
+        "nota_relevancia": 4.0,
+        "nota_completude": 2.0,
+        "nota_clareza_impacto": 2.0,
+        "nota_evidencias": 1.0,
+        "cqf_score": 44.0,
+        "classificacao_editorial": "baixa_prioridade",
+        "status_validacao_factual": "contradicao_detectada",
+        "status_curadoria": "rejeitado",
+        "status_autorizacao_publicacao": "negada",
+        "decisao_editorial": "bloqueado_contradicao",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T15:15:00Z",
+        "observacoes": "Contradição factual grave não resolvida. Bloqueado por RG-02."
+      }
+    },
+    {
+      "id_caso": "CQF-NEG-003",
+      "tipo_cenario": "negativo",
+      "categoria": "superacao",
+      "titulo": "Ausência de Autorização para Divulgação",
+      "descricao": "História excelente com score 94, porém sem autorização de publicação (RG-03).",
+      "interacao": {
+        "versao_schema": "1.0",
+        "id": 603,
+        "autor_id": "membro_603",
+        "data": "2026-10-18T18:00:00Z",
+        "origem": "discord",
+        "texto": "Consegui meu cargo de Tech Lead após anos de perseverança e apoio da comunidade!",
+        "status_revisao": "aprovado"
+      },
+      "historia": {
+        "versao_schema": "1.1",
+        "id_historia": "historia_603",
+        "tipo": "superacao",
+        "resumo": "Promoção a Tech Lead após anos de perseverança.",
+        "interacoes_origem": [603],
+        "fatos": ["Promovido a Tech Lead"],
+        "resultados": ["Alcançou liderança técnica"],
+        "citacoes": [
+          {
+            "texto": "Consegui meu cargo de Tech Lead",
+            "id_interacao": 603
+          }
+        ],
+        "autorizacao_divulgacao": "pendente",
+        "confianca": 0.95,
+        "status_revisao": "aprovado"
+      },
+      "avaliacao_cqf": {
+        "versao_schema": "1.0",
+        "id_avaliacao": "cqf_603",
+        "id_historia": "historia_603",
+        "versao_framework": "1.0",
+        "nota_relevancia": 5.0,
+        "nota_completude": 5.0,
+        "nota_clareza_impacto": 5.0,
+        "nota_evidencias": 4.0,
+        "cqf_score": 94.0,
+        "classificacao_editorial": "alta_prioridade",
+        "status_validacao_factual": "conforme",
+        "status_curadoria": "aprovado",
+        "status_autorizacao_publicacao": "pendente",
+        "decisao_editorial": "bloqueado_sem_autorizacao",
+        "responsavel_avaliacao": "Marcus - PM",
+        "data_avaliacao": "2026-10-19T15:30:00Z",
+        "observacoes": "Score editorial elevado (94), porém divulgação bloqueada por falta de autorização (RG-03)."
+      }
+    }
+  ]
+}
