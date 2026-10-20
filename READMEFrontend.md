@@ -51,15 +51,23 @@ O fluxo tem 6 módulos, organizados no menu lateral:
 | **Importação** | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal. Botão "Importar interações" dá início ao processamento |
 | **Histórias** | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima. Botão "Ver no Estúdio" para cada história |
 | **Estúdio de Conteúdo** | Visualização lado a lado de evidências e rascunhos. Coluna esquerda: mensagem original com destaques, fatos extraídos. Coluna direita: conteúdo editável (Testemunho estruturado ou Case de sucesso), contador de caracteres, seção "Fontes deste conteúdo" com rastreabilidade, botões Regenerar, Copiar e Enviar para curadoria |
-| **Curadoria** | Revisa os rascunhos, mostra as evidências, exige confirmação de autorização e permite aprovar, rejeitar ou regenerar |
+| **Curadoria** | Revisa os rascunhos com três controles independentes: (1) Validação factual (Pendente, Validada, Evidências insuficientes, Contradição não resolvida), (2) Curadoria editorial (Rascunho, Ajustes solicitados, Aprovado, Rejeitado), (3) Autorização de publicação (Não registrada, Registrada). A autorização NÃO bloqueia a aprovação editorial. Regra RG-02: com "Contradição não resolvida", o botão Aprovar fica desabilitado. Regra RG-03: "Liberado para publicação" aparece apenas quando Validada + Aprovado + Registrada. O sistema nunca publica automaticamente |
 | **Histórico** | Lista os pacotes salvos no bucket OCI, com visualização do JSON e download |
 
 **Fluxo de trabalho:**
 1. **Importar** → carregar interações da comunidade
 2. **Processar** → análise automática (transição entre Importação e Histórias)
 3. **Revisar** → explorar histórias e editar rascunhos no Estúdio
-4. **Decidir** → aprovar ou rejeitar na Curadoria
+4. **Decidir** → validar, aprovar ou rejeitar na Curadoria
 5. **Consultar** → verificar pacotes salvos no Histórico
+
+**Regras de Curadoria (conforme CQF):**
+- **Três controles independentes:** Validação factual, Curadoria editorial e Autorização de publicação funcionam de forma separada
+- **RG-01:** A interface nunca preenche lacunas com informação inventada. "Regenerar" apenas alterna entre variações fictícias baseadas nas evidências
+- **RG-02:** Com "Contradição não resolvida", o botão Aprovar fica desabilitado até que a contradição seja resolvida ou a validação seja alterada
+- **RG-03:** O indicador "Liberado para publicação" aparece apenas quando os três controles estão completos: Validação = Validada, Curadoria = Aprovado, Autorização = Registrada
+- **Autorização não bloqueia aprovação:** É possível aprovar editorialmente um ativo mesmo sem autorização registrada (útil para análise interna)
+- **Nada é publicado automaticamente:** Mesmo com "Liberado para publicação", o sistema não publica. A decisão final é do time
 
 **Princípio do produto:** a IA sugere, o time decide. Nada é publicado automaticamente, e cada ativo gerado aponta para a mensagem original.
 
