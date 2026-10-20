@@ -3,7 +3,7 @@
 **De:** Ketlyn Barbosa (*Machine Learning Engineer*)  
 **Para:** Jaqueline de Lira (*AI Engineer*)  
 **Projeto:** CommunityLab (Hackathon ONE G10 — Oracle Next Education & Alura | Equipe 18)  
-**Status da Pipeline de ML/Dados:** ✅ **100% Implementada, Auditada e Testada (27/27 testes aprovados no pytest)**  
+**Status da Pipeline de ML/Dados:** ✅ **100% Implementada, Auditada e Testada (37/37 testes aprovados no pytest com suporte ao CQF v1.0)**  
 **Branch de Trabalho:** `feature/pipeline-ml-completo`  
 
 ---
@@ -271,7 +271,7 @@ Os limiares de negócio estão centralizados em `src/config.py` e suportam sobre
 Antes de submeter PRs ou integrar novos prompts, execute as validações na raiz do repositório:
 
 ```bash
-# 1. Executar a suíte completa de testes automatizados (27 testes passando)
+# 1. Executar a suíte completa de testes automatizados (37 testes passando)
 pytest -v
 
 # 2. Validar integridade dos cenários de demonstração contra os schemas oficiais
@@ -283,10 +283,26 @@ python validar.py data/samples/cenarios_demo.json
 
 ---
 
-## 🤝 6. Próximos Passos Pareados (Ketlyn & Jaqueline)
+## 🎯 6. Suporte ao CommunityLab Quality Framework (CQF v1.0)
+
+A pipeline foi atualizada para aderir à especificação oficial do CQF v1.0 e às regras de governança:
+
+1. **Novos Formatos de Ativos Gerados:**
+   - Além de `post_linkedin` e `resumo_newsletter`, o modelo `AtivoGerado` suporta os formatos centrais do MVP: `testemunho_estruturado` e `case_sucesso`.
+2. **Regras de Governança Integradas (`src.orchestration.cqf`):**
+   - **RG-01 (Integridade de Evidências):** O LLM não pode alucinar ou alterar fatos. Todas as citações literais devem existir textualmente na interação de origem (`validar_integridade_evidencias`).
+   - **RG-02 (Consistência Factual):** Contradições relevantes bloqueiam a aprovação editorial (`avaliar_aprovacao_editorial`).
+   - **RG-03 (Trava de Publicação):** Conteúdos sem permissão de divulgação (`autorizada`) não são liberados para publicação (`validar_liberacao_publicacao`).
+3. **Cenários Oficiais CQF:**
+   - O arquivo `data/samples/cenarios_cqf.json` contém os 6 casos de referência (CQF-001 a 003 positivos e CQF-NEG-001 a 003 negativos).
+
+---
+
+## 🤝 7. Próximos Passos Pareados (Ketlyn & Jaqueline)
 
 1. **Refinamento dos Prompts de Classificação:** Utilizar as definições de [`docs/guia_rotulagem.md`](guia_rotulagem.md) como *system instructions* ou *few-shot examples* nos seus prompts.
-2. **Implementação de Detecção e Extração (`src/detection` e `src/extraction`):** Usar `filtrar_candidatos_historia` como ponto de partida e criar as rotinas de extração de citações literais (`Citacao`) e fatos/resultados.
+2. **Prompts para Testemunhos e Cases:** Criar prompts para gerar `testemunho_estruturado` e `case_sucesso` a partir de histórias com citações literais rastreáveis.
 3. **Avaliação Formal de Acurácia:** Preencher o relatório em [`docs/avaliacao.md`](avaliacao.md) com métricas reais obtidas pelo modelo escolhido (ex: Llama 3 / Command R+ / GPT-4o-mini).
 
 Qualquer dúvida ou necessidade de novos ajustes nos modelos e schemas, conte comigo! 🚀
+
