@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://communitylab/schemas/avaliacao_cqf.schema.json",
+  "title": "AvaliacaoCQF",
+  "description": "Avaliação editorial e governança de qualidade baseada na metodologia CommunityLab Quality Framework (CQF v1.0).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "versao_schema",
+    "id_avaliacao",
+    "id_historia",
+    "versao_framework",
+    "nota_relevancia",
+    "nota_completude",
+    "nota_clareza_impacto",
+    "nota_evidencias",
+    "cqf_score",
+    "classificacao_editorial",
+    "status_validacao_factual",
+    "status_curadoria",
+    "status_autorizacao_publicacao",
+    "responsavel_avaliacao",
+    "data_avaliacao"
+  ],
+  "properties": {
+    "versao_schema": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id_avaliacao": {
+      "type": "string",
+      "pattern": "^cqf_[0-9]{3,}$"
+    },
+    "id_historia": {
+      "type": "string",
+      "pattern": "^historia_[0-9]{3,}$"
+    },
+    "id_ativo": {
+      "type": "string",
+      "pattern": "^ativo_[0-9]{3,}$",
+      "description": "ID do ativo de marketing gerado a partir desta história (opcional)."
+    },
+    "versao_framework": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "nota_relevancia": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Critério R (peso 25%): Relevância da conquista de 0 a 5."
+    },
+    "nota_completude": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Critério C (peso 25%): Completude narrativa de 0 a 5."
+    },
+    "nota_clareza_impacto": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Critério I (peso 20%): Clareza e impacto comunicacional de 0 a 5."
+    },
+    "nota_evidencias": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Critério E (peso 30%): Qualidade e sustentação das evidências de 0 a 5."
+    },
+    "cqf_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score calculado: (R*0.25 + C*0.25 + I*0.20 + E*0.30) * 20."
+    },
+    "classificacao_editorial": {
+      "type": "string",
+      "enum": ["alta_prioridade", "prioridade_media", "baixa_prioridade"]
+    },
+    "status_validacao_factual": {
+      "type": "string",
+      "enum": ["conforme", "evidencias_insuficientes", "contradicao_detectada"]
+    },
+    "status_curadoria": {
+      "type": "string",
+      "enum": ["pendente", "aprovado", "rejeitado", "solicitar_ajustes"]
+    },
+    "status_autorizacao_publicacao": {
+      "type": "string",
+      "enum": ["pendente", "autorizada", "negada", "nao_aplicavel"]
+    },
+    "decisao_editorial": {
+      "type": "string",
+      "enum": [
+        "aprovado",
+        "rejeitado",
+        "solicitar_informacoes",
+        "bloqueado_contradicao",
+        "bloqueado_sem_autorizacao"
+      ],
+      "description": "Resultado sintético da governança editorial e regras RG-01 a RG-03."
+    },
+    "responsavel_avaliacao": {
+      "type": "string",
+      "minLength": 1
+    },
+    "data_avaliacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "observacoes": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  }
+}
