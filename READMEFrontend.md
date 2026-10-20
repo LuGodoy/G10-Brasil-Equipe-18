@@ -49,8 +49,8 @@ O fluxo tem 6 módulos, organizados no menu lateral:
 |---|---|
 | **Dashboard** | Visão geral com KPIs (interações, histórias, ativos gerados) e ações rápidas para navegar |
 | **Importação** | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal. Botão "Importar interações" dá início ao processamento |
-| **Histórias** | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima |
-| **Estúdio de Conteúdo** | (Em desenvolvimento - ETAPA 3) Visualização de evidências e edição de rascunhos lado a lado |
+| **Histórias** | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima. Botão "Ver no Estúdio" para cada história |
+| **Estúdio de Conteúdo** | Visualização lado a lado de evidências e rascunhos. Coluna esquerda: mensagem original com destaques, fatos extraídos. Coluna direita: conteúdo editável (Testemunho estruturado ou Case de sucesso), contador de caracteres, seção "Fontes deste conteúdo" com rastreabilidade, botões Regenerar, Copiar e Enviar para curadoria |
 | **Curadoria** | Revisa os rascunhos, mostra as evidências, exige confirmação de autorização e permite aprovar, rejeitar ou regenerar |
 | **Histórico** | Lista os pacotes salvos no bucket OCI, com visualização do JSON e download |
 
@@ -168,10 +168,12 @@ Pacote salvo no OCI (listagem):
 
 ## Pontos para alinhar com o back
 
-- Quais **tipos de ativo** o back vai gerar (hoje o front mostra Post para LinkedIn, Card de conquista, Resumo do projeto e Roteiro de história).
+- **Tipos de ativo:** o front agora usa Testemunho estruturado (título + descrição + citação) e Case de sucesso (texto narrativo). Confirmar se o back vai gerar nesse formato.
+- **Rastreabilidade:** o front espera um campo `fontes` em cada ativo, com a estrutura: `[{"afirmacao": "...", "fato": "...", "trecho": "..."}]`. Alinhar formato com o back.
 - Se o campo `tipo` da interação vai ser preenchido e com quais valores.
 - O que o pacote salvo no OCI deve conter. Hoje o JSON de exemplo só tem o status dos ativos. O ideal é guardar também o texto gerado, as citações com a mensagem de origem e se a autorização foi confirmada.
 - Se o status de aprovação ou rejeição feito na Curadoria deve ser atualizado no bucket e como.
+- **Fluxo:** o front agora tem Histórias → Estúdio → Curadoria. Confirmar se o back segue essa sequência.
 
 ## Limitações conhecidas do protótipo
 
@@ -179,7 +181,7 @@ Pacote salvo no OCI (listagem):
 - Aprovar ou rejeitar só vale durante a sessão e não grava em lugar nenhum.
 - "Copiar texto" mostra um bloco com ícone de copiar, porque o Streamlit não acessa a área de transferência.
 - Testado no Streamlit 1.66. O `requirements-front.txt` pede `>=1.37`.
-- A tela Estúdio de Conteúdo é um placeholder (será implementada na ETAPA 3).
+- Tipos de ativo disponíveis: Testemunho estruturado (título + descrição + citação) e Case de sucesso (texto narrativo completo).
 
 ## Como contribuir no front
 
