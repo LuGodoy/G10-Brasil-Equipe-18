@@ -24,12 +24,20 @@ from .detection import (
 from .orchestration import (
     dividir_em_lotes,
     avaliar_qualidade,
+    PESOS_CQF,
+    calcular_cqf_score,
+    validar_integridade_evidencias,
+    avaliar_aprovacao_editorial,
+    validar_liberacao_publicacao,
+    consolidar_decisao_governança,
 )
 from .storage import (
     carregar_schema,
     validar_objeto_contra_schema,
     validar_interacao,
     validar_ativo,
+    validar_historia,
+    validar_avaliacao_cqf,
 )
 from .modelos import (
     Interacao,
@@ -37,6 +45,7 @@ from .modelos import (
     Citacao,
     HistoriaDetectada,
     AtivoGerado,
+    AvaliacaoCQF,
     LoteInteracoes,
 )
 from .config import (
@@ -64,15 +73,24 @@ __all__ = [
     "gerar_agregacoes",
     "filtrar_candidatos_historia",
     "avaliar_qualidade",
+    "PESOS_CQF",
+    "calcular_cqf_score",
+    "validar_integridade_evidencias",
+    "avaliar_aprovacao_editorial",
+    "validar_liberacao_publicacao",
+    "consolidar_decisao_governança",
     "carregar_schema",
     "validar_objeto_contra_schema",
     "validar_interacao",
     "validar_ativo",
+    "validar_historia",
+    "validar_avaliacao_cqf",
     "Interacao",
     "AnaliseInteracao",
     "Citacao",
     "HistoriaDetectada",
     "AtivoGerado",
+    "AvaliacaoCQF",
     "LoteInteracoes",
     "TAMANHO_MINIMO_TEXTO",
     "TAMANHO_MAXIMO_TEXTO",
