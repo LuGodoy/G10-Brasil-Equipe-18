@@ -4,6 +4,43 @@ Interface do CommunityLab, feita em Streamlit. Por enquanto ela funciona sozinha
 
 > Todos os nomes, mensagens e depoimentos do front são inventados. Nada aqui representa pessoas reais.
 
+## Identidade Visual
+
+O CommunityLab usa um estilo híbrido **SaaS corporativo + IA**, com visual limpo, profissional e acessível.
+
+### Paleta de cores
+
+| Cor | Código | Uso |
+|---|---|---|
+| **Azul-marinho** | `#101B32` | Sidebar e navegação |
+| **Violeta** | `#7C3AED` | Cor primária, ações de IA e destaques |
+| **Ciano** | `#22D3EE` | Detalhes tecnológicos (SOMENTE sobre fundo escuro) |
+| **Branco-neutro** | `#F8FAFC` | Fundo da área de trabalho |
+| **Verde** | `#10B981` (fundos) / `#047857` (textos) | Sucesso e aprovação |
+| **Texto principal** | `#0F172A` | Títulos e conteúdo principal |
+| **Texto secundário** | `#64748B` | Labels, legendas e informações auxiliares |
+| **Borda suave** | `#E2E8F0` | Bordas de cards e divisores |
+
+### Regras de contraste
+
+- Todos os pares texto/fundo seguem **WCAG AA** (4.5:1 para texto normal, 3:1 para texto grande)
+- Verde `#047857` é usado para **texto sobre fundo claro** (legibilidade garantida)
+- Ciano `#22D3EE` aparece **apenas sobre azul-marinho** (nunca sobre fundo claro)
+- Sidebar escura: texto claro `#F8FAFC` sobre azul-marinho `#101B32`
+
+### Tipografia
+
+- **Fonte:** Inter (pesos 400, 500, 600, 700)
+- **Tom:** Natural, direto, sem jargão técnico excessivo
+- **Slogan:** "Histórias reais. Impacto inteligente."
+
+### Componentes
+
+- **Cards:** Fundo branco com borda `#E2E8F0`, cantos arredondados (10px)
+- **Botões:** Estados normal, hover e ativo com transições suaves
+- **Chips:** Cores semânticas (verde = sucesso, amarelo = pendente, vermelho = erro, roxo = IA)
+- **Sidebar:** Azul-marinho com destaque violeta no item ativo
+
 ## O que o front faz
 
 O fluxo tem 4 etapas, na mesma ordem do menu lateral:
