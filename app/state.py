@@ -38,15 +38,25 @@ def init_state():
     ss.proc_status = "novo"  # novo | retry | erro | concluido
     ss.proc_etapas = ["pendente"] * 6
     ss.historia_atual = None
-    ss.status_ativos = {}  # "hist:ativo" -> rascunho | aprovado | rejeitado
-    ss.motivos = {}
+    # Controles da Curadoria (3 dimensões independentes)
+    ss.validacao_factual = {}  # "hist:ativo" -> pendente | validada | insuficiente | contradicao
+    ss.status_curadoria = {}  # "hist:ativo" -> rascunho | ajustes | aprovado | rejeitado
+    ss.autorizacao = {}  # "hist:ativo" -> nao_registrada | registrada
+    ss.observacoes = {}  # "hist:ativo" -> texto de observação
+    ss.motivos = {}  # "hist:ativo" -> texto de motivo de rejeição
+    # Legado (manter compatibilidade)
+    ss.status_ativos = {}  # "hist:ativo" -> rascunho | aprovado | rejeitado (legado)
     ss.regen = {}
     ss.pacotes_oci = svc.listar_pacotes()
     ss.toast = None
     ss.mostrar_copia = False
     for h in ss.historias:
         for a in h["ativos"]:
-            ss.status_ativos[f"{h['id']}:{a['id']}"] = "rascunho"
+            chave = f"{h['id']}:{a['id']}"
+            ss.status_ativos[chave] = "rascunho"
+            ss.validacao_factual[chave] = "pendente"
+            ss.status_curadoria[chave] = "rascunho"
+            ss.autorizacao[chave] = "nao_registrada"
 
 
 def reiniciar():
