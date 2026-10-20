@@ -4,6 +4,8 @@ from .contrato import (
     validar_objeto_contra_schema,
     validar_interacao,
     validar_ativo,
+    validar_historia,
+    validar_avaliacao_cqf,
 )
 
 __all__ = [
@@ -11,4 +13,7 @@ __all__ = [
     "validar_objeto_contra_schema",
     "validar_interacao",
     "validar_ativo",
+    "validar_historia",
+    "validar_avaliacao_cqf",
 ]
+
