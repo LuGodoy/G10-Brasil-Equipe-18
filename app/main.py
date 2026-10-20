@@ -23,6 +23,7 @@ TELAS = {
 
 with st.sidebar:
     md('<div class="cl-logo">🧪 CommunityLab</div>')
+    md('<div class="cl-slogan">Histórias reais. Impacto inteligente.</div>')
     md('<div class="cl-ws"><b>Programa ONE</b><br><small>Oracle Next Education + Alura</small></div>')
     md('<div class="cl-label">ESPAÇO DE TRABALHO</div>')
     ativo = "ingestao" if ss.pagina == "processamento" else ss.pagina
