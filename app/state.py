@@ -12,10 +12,12 @@ from mocks import mock_data as m
 from services import data_service as svc
 
 MENU = [
-    ("ingestao", "📥  Ingestão"),
-    ("historias", "💬  Histórias detectadas"),
+    ("dashboard", "📊  Dashboard"),
+    ("importacao", "📥  Importação"),
+    ("historias", "💬  Histórias"),
+    ("estudio", "✨  Estúdio de Conteúdo"),
     ("curadoria", "✅  Curadoria"),
-    ("oci", "🗄️  Armazenamento OCI"),
+    ("historico", "🗄️  Histórico"),
 ]
 CATEGORIA_TODAS = "Todas as categorias"
 CANAL_TODOS = "Todos os canais"
@@ -26,7 +28,7 @@ def init_state():
     if ss.get("_iniciado"):
         return
     ss._iniciado = True
-    ss.pagina = "ingestao"
+    ss.pagina = "dashboard"
     ss.dados = {}
     ss.interacoes = copy.deepcopy(m.INTERACOES)
     ss.arquivo = {"nome": m.ARQUIVO_DEMO, "tamanho": m.ARQUIVO_DEMO_TAMANHO, "origem": "Arquivo JSON"}

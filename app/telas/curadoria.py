@@ -153,7 +153,7 @@ def render():
         b1.button("Desfazer decisão", on_click=_desfazer, args=(hid, aid))
         b3.button("Copiar texto", on_click=_alternar_copia)
         if status == "aprovado":
-            b5.button("→ Ir para Armazenamento OCI", type="primary", on_click=ir_para, args=("oci",))
+            b5.button("→ Ir para Histórico", type="primary", on_click=ir_para, args=("historico",))
         else:
             b5.button("→ Voltar às histórias", type="primary", on_click=ir_para, args=("historias",))
     st.caption("Aprovar não publica. O conteúdo só fica pronto para uso pelo seu time.")
