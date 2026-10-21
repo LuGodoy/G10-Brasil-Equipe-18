@@ -203,7 +203,7 @@ Pacote salvo no OCI (listagem):
 1. Abra o Prompt de Comando ou PowerShell.
 2. Navegue até a pasta do projeto:
    ```bash
-   cd "c:\Users\guilh\Documents\tissy\communitylab-front\communitylab-front"
+   cd "c:\Users\communitylab-front\communitylab-front"
    ```
 3. Ative o ambiente virtual (se existir):
    ```bash
