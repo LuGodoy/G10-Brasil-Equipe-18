@@ -81,13 +81,13 @@ def analisar(interacoes):
 
     try:
         historias = llm.analisar(interacoes)
-        if historias:
-            ORIGEM_ANALISE = "gemini"
-            ULTIMO_ERRO = ""
-            print(f"[analise] gemini OK: {len(historias)} historias", flush=True)
-            return historias
-        ULTIMO_ERRO = "O modelo não encontrou histórias com potencial neste lote."
-        print(f"[analise] gemini sem historias: {ULTIMO_ERRO}", flush=True)
+        # Analise concluida com sucesso: lista vazia tambem e resultado valido
+        # (nenhuma historia elegivel no lote). O fallback mock fica reservado
+        # para falha tecnica: rede, chave ausente ou resposta invalida.
+        ORIGEM_ANALISE = "gemini"
+        ULTIMO_ERRO = ""
+        print(f"[analise] gemini OK: {len(historias)} historias", flush=True)
+        return historias
     except Exception as erro:  # rede, chave ausente, JSON inválido
         ULTIMO_ERRO = str(erro)
         print(f"[analise] FALHOU -> fallback mock: {ULTIMO_ERRO}", flush=True)
