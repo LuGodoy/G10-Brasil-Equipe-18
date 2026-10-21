@@ -165,8 +165,9 @@ def render():
                f'<span style="font-size:22px; font-weight:600;">{h["relevancia"]}</span>'
                f'<span class="cl-muted"> / 100</span></div>')
         
+        sentimento = h["sentimento"].lower()
         md(f'<div style="margin-left:46px; margin-top:8px;">'
-           f'{chip(h["categoria"])}{chip(f"Sentimento {h["sentimento"].lower()}", "green")}</div>')
+           f'{chip(h["categoria"])}{chip("Sentimento " + sentimento, "green")}</div>')
     
     # Duas colunas: evidências à esquerda, conteúdo à direita
     esq, dir_ = st.columns([1, 1])
