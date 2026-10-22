@@ -25,7 +25,7 @@ def _revisar(hid):
 
 def _status_da_historia(h):
     ss = st.session_state
-    estados = [ss.status_ativos[f"{h['id']}:{a['id']}"] for a in h["ativos"]]
+    estados = [ss.status_ativos.get(f"{h['id']}:{a['id']}", "rascunho") for a in h["ativos"]]
     if "rascunho" in estados:
         return chip("Revisão humana pendente", "yellow")
     if all(e == "rejeitado" for e in estados):
