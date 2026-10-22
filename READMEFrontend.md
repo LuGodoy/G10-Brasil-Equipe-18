@@ -137,6 +137,21 @@ Procure por `TODO(back)` no arquivo para achar os pontos de integração:
 | `reenviar_pacote(pacote)` | Tentar gravar de novo um pacote que falhou |
 | `conteudo_pacote(caminho)` | Ler o JSON de um objeto do bucket |
 
+### Armazenamento no OCI (implementado)
+
+O módulo `app/services/oci_storage.py` grava e lê os pacotes no bucket. O `data_service.py` já chama esse módulo nas quatro funções acima; sem credencial configurada, o app volta para os dados fictícios.
+
+Configuração por variável de ambiente (ou no `.env` da raiz):
+
+- `OCI_BUCKET_NAME` — padrão `G10communitylab-ativos`
+- `OCI_NAMESPACE` — namespace do tenancy (se vazio, é consultado na API)
+- `OCI_CONFIG_FILE` — padrão `~/.oci/config`
+- `OCI_PROFILE` — padrão `DEFAULT`
+
+Credencial: chave de API do usuário, em `~/.oci/config` com a chave privada. Nada de segredo no repositório.
+
+Formato: cada lote vira `ativos/<lote_id>/<arquivo>.json`. Como o nome vem do lote, regravar sobrescreve — repetir a gravação não duplica.
+
 ### Formato provisório dos dados
 
 O formato abaixo é o que o front usa **hoje**. Ele é só um ponto de partida e **pode mudar**: quem define o contrato oficial é o back, e o time deve decidir em conjunto.
