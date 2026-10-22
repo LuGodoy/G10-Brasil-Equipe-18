@@ -191,7 +191,8 @@ def _normalizar(historias: list, interacoes: list) -> list:
     for posicao, item in enumerate(interacoes, start=1):
         # O id vem do lote quando existir; senao, usa a posicao para referencia.
         item = dict(item)
-        item["_id"] = item.get("id") if isinstance(item.get("id"), int) else posicao
+        id_lote = item.get("id")
+        item["_id"] = id_lote if isinstance(id_lote, int) and id_lote >= 1 else posicao
         indice[(item.get("autor"), item.get("texto"))] = item
         por_posicao[posicao] = item
 
@@ -246,6 +247,9 @@ def _normalizar(historias: list, interacoes: list) -> list:
         vistos = set()
         for destaque in hist.get("destaques") or []:
             recorte = _localizar(texto_fonte, str(destaque))
+            # O contrato do pipeline limita a citacao a 500 caracteres.
+            if recorte and len(recorte) > 500:
+                recorte = recorte[:500].rsplit(" ", 1)[0] or recorte[:500]
             if not recorte or recorte.lower() in vistos:
                 continue
             vistos.add(recorte.lower())
