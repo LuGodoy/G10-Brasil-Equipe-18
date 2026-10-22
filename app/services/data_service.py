@@ -67,6 +67,42 @@ ORIGEM_ANALISE = "mock"   # "gemini" quando a análise real responde
 ULTIMO_ERRO = ""          # preenchido quando a análise real falha
 
 
+ULTIMO_ERRO_OCI = ""
+
+
+def _storage():
+    """Importa o modulo de storage; None quando indisponivel."""
+    global ULTIMO_ERRO_OCI
+    try:
+        from . import oci_storage  # import local: evita custo quando nao usado
+    except ImportError:
+        try:
+            from services import oci_storage  # type: ignore
+        except ImportError:
+            return None
+    if not oci_storage.disponivel():
+        return None
+    return oci_storage
+
+
+def _registrar_erro_oci(erro):
+    global ULTIMO_ERRO_OCI
+    ULTIMO_ERRO_OCI = str(erro)
+    print(f"[oci] falhou: {ULTIMO_ERRO_OCI}", flush=True)
+
+
+def _data_br(iso: str) -> str:
+    """Converte 2026-10-22T04:05:54+00:00 em 22/10/2026 04:05."""
+    texto = (iso or "").replace("T", " ")
+    if len(texto) < 16:
+        return texto
+    data, hora = texto[:10], texto[11:16]
+    partes = data.split("-")
+    if len(partes) != 3:
+        return texto
+    return f"{partes[2]}/{partes[1]}/{partes[0]} {hora}"
+
+
 def analisar(interacoes):
     """Analisa as interações com o provedor de LLM.
 
@@ -107,24 +143,102 @@ def regenerar(historia, ativo_id, vez):
 
 # ---------- OCI ----------
 def listar_pacotes():
-    """TODO(back): listar objetos do bucket no OCI Object Storage."""
-    return copy.deepcopy(m.PACOTES_OCI)
+    """Lista os pacotes salvos no bucket. Sem credencial, cai no mock."""
+    armazenamento = _storage()
+    if armazenamento is None:
+        return copy.deepcopy(m.PACOTES_OCI)
+    try:
+        itens = armazenamento.listar_pacotes()
+    except Exception as erro:
+        _registrar_erro_oci(erro)
+        return copy.deepcopy(m.PACOTES_OCI)
+    return [
+        {
+            "caminho": item["caminho"],
+            "lote": item["lote"],
+            "data": _data_br(item.get("salvo_em")),
+            "tamanho": item.get("tamanho"),
+            "status": "salvo",
+        }
+        for item in itens
+    ]
 
 
 def salvar_no_oci(pacotes, lote_id):
-    """TODO(back): gravar o pacote no OCI. Deve ser idempotente (retry não duplica)."""
-    return pacotes
+    """Grava os pacotes do lote no bucket.
+
+    O nome do objeto vem do lote, entao repetir a gravacao sobrescreve em vez
+    de duplicar (idempotente). Sem credencial, devolve a lista como veio.
+    """
+    armazenamento = _storage()
+    if armazenamento is None:
+        return pacotes
+
+    atualizados = []
+    for pacote in pacotes:
+        caminho = str(pacote.get("caminho") or f"ativos/{lote_id}/pacote-distribuicao.json")
+        try:
+            resultado = armazenamento.salvar_objeto(caminho, pacote)
+            novo = dict(pacote)
+            novo.update(
+                {
+                    "caminho": caminho,
+                    "lote": lote_id,
+                    "data": _data_br(resultado.get("salvo_em")),
+                    "tamanho": resultado.get("tamanho"),
+                    "status": "salvo",
+                }
+            )
+        except Exception as erro:
+            _registrar_erro_oci(erro)
+            novo = dict(pacote)
+            novo["status"] = "falhou"
+        atualizados.append(novo)
+    return atualizados
 
 
 def reenviar_pacote(pacote):
-    """TODO(back): tentar gravar de novo um pacote que falhou."""
+    """Tenta gravar de novo um pacote que falhou."""
+    armazenamento = _storage()
+    if armazenamento is None:
+        novo = dict(pacote)
+        novo.update({"status": "salvo", "data": "15/10/2026 14:40", "tamanho": "2,4 KB"})
+        return novo
+
+    caminho = str(pacote.get("caminho") or "")
+    if not caminho:
+        novo = dict(pacote)
+        novo["status"] = "falhou"
+        return novo
+    try:
+        resultado = armazenamento.salvar_objeto(caminho, pacote)
+    except Exception as erro:
+        _registrar_erro_oci(erro)
+        novo = dict(pacote)
+        novo["status"] = "falhou"
+        return novo
     novo = dict(pacote)
-    novo.update({"status": "salvo", "data": "15/10/2026 14:40", "tamanho": "2,4 KB"})
+    novo.update(
+        {
+            "status": "salvo",
+            "data": _data_br(resultado.get("salvo_em")),
+            "tamanho": resultado.get("tamanho"),
+        }
+    )
     return novo
 
 
 def conteudo_pacote(caminho):
-    """TODO(back): ler o objeto do bucket. Formato provisório."""
+    """Le o JSON de um objeto do bucket. Sem credencial, devolve o mock."""
+    armazenamento = _storage()
+    if armazenamento is not None:
+        try:
+            conteudo = armazenamento.ler_objeto(str(caminho))
+            if conteudo is not None:
+                return conteudo
+        except Exception as erro:
+            _registrar_erro_oci(erro)
+
     if caminho.endswith("evidencias.json"):
         return {
             "lote": "DEMO-001",

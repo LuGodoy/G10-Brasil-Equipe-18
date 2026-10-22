@@ -1,0 +1,188 @@
+"""Armazenamento de pacotes no OCI Object Storage.
+
+Grava cada lote como um objeto unico, nomeado pelo id do lote:
+
+    ativos/<lote_id>/pacote-distribuicao.json
+
+Gravar duas vezes o mesmo lote sobrescreve o objeto (idempotente), em vez de
+criar uma copia. As credenciais ficam em ~/.oci/config e a configuracao do
+bucket em variaveis de ambiente ou no arquivo .env da raiz do projeto.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+
+PREFIXO = "ativos"
+ARQUIVO_PACOTE = "pacote-distribuicao.json"
+BUCKET_PADRAO = "G10communitylab-ativos"
+CONFIG_PADRAO = "~/.oci/config"
+
+
+class ErroArmazenamento(RuntimeError):
+    """Falha ao falar com o OCI Object Storage."""
+
+
+def _carregar_env() -> None:
+    """Le o .env da raiz do projeto, sem depender de biblioteca externa."""
+    for caminho in (Path.cwd() / ".env", Path(__file__).resolve().parents[2] / ".env"):
+        if not caminho.exists():
+            continue
+        for linha in caminho.read_text(encoding="utf-8", errors="ignore").splitlines():
+            linha = linha.strip()
+            if not linha or linha.startswith("#") or "=" not in linha:
+                continue
+            chave, valor = linha.split("=", 1)
+            chave = chave.strip()
+            if chave and chave not in os.environ:
+                os.environ[chave] = valor.strip().strip('"').strip("'")
+
+
+def _config() -> tuple[object, str, str]:
+    """Devolve (cliente, namespace, bucket) prontos para uso."""
+    _carregar_env()
+    try:
+        import oci  # import local: o app funciona mesmo sem o SDK instalado
+    except ImportError as erro:  # pragma: no cover
+        raise ErroArmazenamento(
+            "SDK da OCI nao instalado. Rode: pip install oci"
+        ) from erro
+
+    arquivo = os.path.expanduser(os.environ.get("OCI_CONFIG_FILE", CONFIG_PADRAO))
+    perfil = os.environ.get("OCI_PROFILE", "DEFAULT")
+    if not Path(arquivo).exists():
+        raise ErroArmazenamento(f"Credencial da OCI nao encontrada em {arquivo}")
+
+    try:
+        config = oci.config.from_file(arquivo, perfil)
+        cliente = oci.object_storage.ObjectStorageClient(config)
+        namespace = os.environ.get("OCI_NAMESPACE") or cliente.get_namespace().data
+    except Exception as erro:  # credencial invalida, rede, permissao
+        raise ErroArmazenamento(f"Falha ao autenticar na OCI: {erro}") from erro
+
+    bucket = os.environ.get("OCI_BUCKET_NAME", BUCKET_PADRAO)
+    return cliente, namespace, bucket
+
+
+def caminho_do_pacote(lote_id: str) -> str:
+    """Nome do objeto no bucket. Mesmo lote -> mesmo caminho (sobrescreve)."""
+    lote = (lote_id or "").strip()
+    if not lote:
+        raise ErroArmazenamento("lote_id vazio: nao da para nomear o pacote")
+    return f"{PREFIXO}/{lote}/{ARQUIVO_PACOTE}"
+
+
+def salvar_objeto(caminho: str, dados: dict) -> dict:
+    """Grava um objeto em qualquer caminho do bucket."""
+    cliente, namespace, bucket = _config()
+    corpo = json.dumps(dados, ensure_ascii=False, indent=2).encode("utf-8")
+    try:
+        cliente.put_object(
+            namespace_name=namespace,
+            bucket_name=bucket,
+            object_name=caminho,
+            put_object_body=corpo,
+            content_type="application/json",
+        )
+    except Exception as erro:
+        raise ErroArmazenamento(f"Falha ao gravar {caminho}: {erro}") from erro
+    return {
+        "caminho": caminho,
+        "tamanho_bytes": len(corpo),
+        "tamanho": f"{len(corpo) / 1024:.1f} KB",
+        "salvo_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "status": "salvo",
+    }
+
+
+def ler_objeto(caminho: str) -> dict | None:
+    """Le um objeto do bucket pelo caminho. None quando nao existe."""
+    cliente, namespace, bucket = _config()
+    try:
+        resposta = cliente.get_object(namespace, bucket, caminho)
+    except Exception as erro:
+        if getattr(erro, "status", None) == 404:
+            return None
+        raise ErroArmazenamento(f"Falha ao ler {caminho}: {erro}") from erro
+    return json.loads(resposta.data.content.decode("utf-8"))
+
+
+def disponivel() -> bool:
+    """True se a credencial e o bucket estao acessiveis."""
+    try:
+        _config()
+        return True
+    except ErroArmazenamento:
+        return False
+
+
+def salvar_pacote(lote_id: str, dados: dict) -> dict:
+    """Grava o pacote do lote e devolve o resumo do que foi salvo."""
+    cliente, namespace, bucket = _config()
+    caminho = caminho_do_pacote(lote_id)
+    corpo = json.dumps(dados, ensure_ascii=False, indent=2).encode("utf-8")
+
+    try:
+        cliente.put_object(
+            namespace_name=namespace,
+            bucket_name=bucket,
+            object_name=caminho,
+            put_object_body=corpo,
+            content_type="application/json",
+        )
+    except Exception as erro:
+        raise ErroArmazenamento(f"Falha ao gravar {caminho}: {erro}") from erro
+
+    return {
+        "caminho": caminho,
+        "lote": lote_id,
+        "tamanho_bytes": len(corpo),
+        "tamanho": f"{len(corpo) / 1024:.1f} KB",
+        "salvo_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "status": "salvo",
+    }
+
+
+def ler_pacote(lote_id: str) -> dict | None:
+    """Le o pacote do lote. Devolve None quando o lote nao existe."""
+    cliente, namespace, bucket = _config()
+    caminho = caminho_do_pacote(lote_id)
+    try:
+        resposta = cliente.get_object(namespace, bucket, caminho)
+    except Exception as erro:
+        if getattr(erro, "status", None) == 404:
+            return None
+        raise ErroArmazenamento(f"Falha ao ler {caminho}: {erro}") from erro
+
+    return json.loads(resposta.data.content.decode("utf-8"))
+
+
+def listar_pacotes() -> list[dict]:
+    """Lista os pacotes salvos, do mais recente para o mais antigo."""
+    cliente, namespace, bucket = _config()
+    try:
+        resposta = cliente.list_objects(
+            namespace, bucket, prefix=f"{PREFIXO}/", fields="name,size,timeModified"
+        )
+    except Exception as erro:
+        raise ErroArmazenamento(f"Falha ao listar o bucket: {erro}") from erro
+
+    itens = []
+    for objeto in resposta.data.objects:
+        partes = objeto.name.split("/")
+        if len(partes) < 2:
+            continue
+        itens.append(
+            {
+                "lote": partes[1],
+                "caminho": objeto.name,
+                "tamanho_bytes": objeto.size,
+                "tamanho": f"{(objeto.size or 0) / 1024:.1f} KB",
+                "salvo_em": str(objeto.time_modified or "")[:19],
+            }
+        )
+    itens.sort(key=lambda item: item["salvo_em"], reverse=True)
+    return itens
