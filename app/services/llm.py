@@ -176,6 +176,32 @@ def _localizar(original: str, trecho: str):
         return original[inicio_trecho:fim_trecho]
     return None
 
+def _fonte_confiavel(hist: dict, por_posicao: dict):
+    """Devolve a interacao do lote que sustenta a historia, ou None.
+
+    A fonte e sempre um item do lote recebido. O texto informado pelo modelo
+    nunca serve como fonte de verdade: no maximo, ajuda a localizar o item,
+    e so quando a busca e inequivoca.
+    """
+    try:
+        posicao = int(hist.get("indice_interacao") or 0)
+    except (TypeError, ValueError):
+        posicao = 0
+    if posicao in por_posicao:
+        return por_posicao[posicao]
+
+    informado = _colapsar(str(hist.get("mensagem_original") or ""))
+    if not informado:
+        return None
+    candidatos = [
+        item for item in por_posicao.values()
+        if _colapsar(str(item.get("texto") or "")) == informado
+    ]
+    if len(candidatos) == 1:
+        return candidatos[0]
+    return None
+
+
 def _nivel_relevancia(valor: int) -> str:
     if valor >= 85:
         return "alta"
@@ -186,14 +212,12 @@ def _nivel_relevancia(valor: int) -> str:
 
 def _normalizar(historias: list, interacoes: list) -> list:
     """Garante o contrato esperado pelas telas, sem confiar cegamente no modelo."""
-    indice = {}
     por_posicao = {}
     for posicao, item in enumerate(interacoes, start=1):
         # O id vem do lote quando existir; senao, usa a posicao para referencia.
         item = dict(item)
         id_lote = item.get("id")
         item["_id"] = id_lote if isinstance(id_lote, int) and id_lote >= 1 else posicao
-        indice[(item.get("autor"), item.get("texto"))] = item
         por_posicao[posicao] = item
 
     saida = []
@@ -202,19 +226,11 @@ def _normalizar(historias: list, interacoes: list) -> list:
             continue
         autor = str(hist.get("autor") or "").strip()
         original = str(hist.get("mensagem_original") or "").strip()
-        base = indice.get((autor, original)) or {}
-        try:
-            posicao_informada = int(hist.get("indice_interacao") or 0)
-        except (TypeError, ValueError):
-            posicao_informada = 0
-        if posicao_informada in por_posicao and (
-            por_posicao[posicao_informada].get("autor") == autor
-            or _colapsar(por_posicao[posicao_informada].get("texto", "")) == _colapsar(original)
-        ):
-            base = por_posicao[posicao_informada]
-        canal = str(hist.get("canal") or base.get("canal") or "")
-        texto_fonte = str(base.get("texto") or original)
-        id_interacao = int(base.get("_id") or posicao_informada or 0)
+        base = _fonte_confiavel(hist, por_posicao)
+        canal = str(hist.get("canal") or (base.get("canal") if base else "") or "")
+        # O texto usado para validar a citacao vem do lote, nunca do modelo.
+        texto_fonte = str(base.get("texto") or "") if base else ""
+        id_interacao = int(base.get("_id") or 0) if base else 0
 
         ativos = []
         for ativo in hist.get("ativos") or []:
