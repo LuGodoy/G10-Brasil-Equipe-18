@@ -157,7 +157,10 @@ História detectada (saída):
   "categoria": "Conquista profissional",
   "sentimento": "Positivo",
   "relevancia": 96,
+  "relevancia_nivel": "alta",
   "mensagem_original": "...",
+  "citacoes": [{ "texto": "trecho literal do original", "id_interacao": 1 }],
+  "interacoes_origem": [1],
   "destaques": ["trecho da mensagem usado no rascunho"],
   "fatos": ["Conquista: primeira vaga como dev júnior"],
   "ativos": [
@@ -166,6 +169,13 @@ História detectada (saída):
   ]
 }
 ```
+
+Campos novos (aditivos, outubro/2026):
+
+- `citacoes` — cada trecho de prova com o `id_interacao` de origem. O trecho é recortado do texto original, não copiado do modelo; se não existir literalmente no original, é descartado.
+- `interacoes_origem` — lista de ids das interações que sustentam a história.
+- `relevancia_nivel` — faixa derivada da numérica: `alta` (85+), `media` (60 a 84) e `baixa` (abaixo de 60).
+- `destaques` passa a ser derivado das citações validadas, então o destaque em negrito na tela sempre corresponde a texto que existe na mensagem.
 
 Pacote salvo no OCI (listagem):
 

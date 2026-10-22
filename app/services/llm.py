@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 
 import requests
 
@@ -37,6 +38,7 @@ Responda SOMENTE com JSON válido, neste formato exato:
   "historias": [
     {{
       "id": "hist-001",
+      "indice_interacao": 1,
       "autor": "nome do autor da interação",
       "canal": "canal da interação",
       "categoria": "categoria curta, ex: Conquista profissional",
@@ -65,7 +67,8 @@ Responda SOMENTE com JSON válido, neste formato exato:
 
 Regras obrigatórias:
 - Use apenas informação presente nas interações. Não invente nome, número ou fato.
-- "destaques" deve conter trechos literais do texto original.
+- "indice_interacao" é a posição da interação no lote recebido, começando em 1.
+- "destaques" deve conter trechos copiados do texto original, sem reescrever.
 - Se nenhuma interação tiver potencial, devolva {{"historias": []}}.
 - Não escreva nada antes ou depois do JSON.
 """
@@ -110,11 +113,112 @@ def _iniciais(nome: str) -> str:
     return (partes[0][0] + partes[-1][0]).upper()
 
 
+
+def _colapsar(texto: str) -> str:
+    """Reduz sequencias de espaco/quebra de linha a um espaco simples."""
+    return re.sub(r"\s+", " ", (texto or "").strip())
+
+
+def _achatado_com_mapa(texto: str):
+    """Normaliza para comparacao (sem acento, minusculo, espaco simples).
+
+    Devolve tambem o indice de cada caractere no texto original, para o
+    recorte final sair do original com acento e caixa preservados.
+    """
+    achatado = []
+    mapa = []
+    anterior_espaco = True
+    for i, ch in enumerate(texto or ""):
+        if ch.isspace():
+            if anterior_espaco:
+                continue
+            achatado.append(" ")
+            mapa.append(i)
+            anterior_espaco = True
+            continue
+        base = unicodedata.normalize("NFKD", ch)
+        sem_acento = "".join(c for c in base if not unicodedata.combining(c))
+        for c in sem_acento.lower():
+            achatado.append(c)
+            mapa.append(i)
+        anterior_espaco = False
+    while achatado and achatado[-1] == " ":
+        achatado.pop()
+        mapa.pop()
+    return "".join(achatado), mapa
+
+
+def _localizar(original: str, trecho: str):
+    """Devolve o trecho como ele aparece no texto original, ou None.
+
+    A comparacao ignora espaco, acento e maiuscula/minuscula. O valor
+    devolvido e sempre o recorte do original, entao a citacao continua
+    literal -- o que muda e so a tolerancia ao procurar.
+    """
+    if not original or not trecho:
+        return None
+    alvo = _colapsar(trecho)
+    if not alvo:
+        return None
+    alvo_achatado, _ = _achatado_com_mapa(alvo)
+    if not alvo_achatado:
+        return None
+
+    normalizado, mapa = _achatado_com_mapa(original)
+    for candidato in (alvo_achatado, alvo_achatado.strip(".,;:!?'\"()[]")):
+        if not candidato:
+            continue
+        posicao = normalizado.find(candidato)
+        if posicao == -1:
+            continue
+        inicio_trecho = mapa[posicao]
+        fim_trecho = mapa[posicao + len(candidato) - 1] + 1
+        return original[inicio_trecho:fim_trecho]
+    return None
+
+def _fonte_confiavel(hist: dict, por_posicao: dict):
+    """Devolve a interacao do lote que sustenta a historia, ou None.
+
+    A fonte e sempre um item do lote recebido. O texto informado pelo modelo
+    nunca serve como fonte de verdade: no maximo, ajuda a localizar o item,
+    e so quando a busca e inequivoca.
+    """
+    try:
+        posicao = int(hist.get("indice_interacao") or 0)
+    except (TypeError, ValueError):
+        posicao = 0
+    if posicao in por_posicao:
+        return por_posicao[posicao]
+
+    informado = _colapsar(str(hist.get("mensagem_original") or ""))
+    if not informado:
+        return None
+    candidatos = [
+        item for item in por_posicao.values()
+        if _colapsar(str(item.get("texto") or "")) == informado
+    ]
+    if len(candidatos) == 1:
+        return candidatos[0]
+    return None
+
+
+def _nivel_relevancia(valor: int) -> str:
+    if valor >= 85:
+        return "alta"
+    if valor >= 60:
+        return "media"
+    return "baixa"
+
+
 def _normalizar(historias: list, interacoes: list) -> list:
     """Garante o contrato esperado pelas telas, sem confiar cegamente no modelo."""
-    indice = {}
-    for item in interacoes:
-        indice[(item.get("autor"), item.get("texto"))] = item
+    por_posicao = {}
+    for posicao, item in enumerate(interacoes, start=1):
+        # O id vem do lote quando existir; senao, usa a posicao para referencia.
+        item = dict(item)
+        id_lote = item.get("id")
+        item["_id"] = id_lote if isinstance(id_lote, int) and id_lote >= 1 else posicao
+        por_posicao[posicao] = item
 
     saida = []
     for n, hist in enumerate(historias, start=1):
@@ -122,8 +226,11 @@ def _normalizar(historias: list, interacoes: list) -> list:
             continue
         autor = str(hist.get("autor") or "").strip()
         original = str(hist.get("mensagem_original") or "").strip()
-        base = indice.get((autor, original)) or {}
-        canal = str(hist.get("canal") or base.get("canal") or "")
+        base = _fonte_confiavel(hist, por_posicao)
+        canal = str(hist.get("canal") or (base.get("canal") if base else "") or "")
+        # O texto usado para validar a citacao vem do lote, nunca do modelo.
+        texto_fonte = str(base.get("texto") or "") if base else ""
+        id_interacao = int(base.get("_id") or 0) if base else 0
 
         ativos = []
         for ativo in hist.get("ativos") or []:
@@ -150,6 +257,21 @@ def _normalizar(historias: list, interacoes: list) -> list:
         except (TypeError, ValueError):
             relevancia = 0
 
+        # Citacoes: cada trecho apontado pelo modelo e conferido contra o texto
+        # original. Se nao existir literalmente, e descartado (nao inventamos).
+        citacoes = []
+        vistos = set()
+        for destaque in hist.get("destaques") or []:
+            recorte = _localizar(texto_fonte, str(destaque))
+            # O contrato do pipeline limita a citacao a 500 caracteres.
+            if recorte and len(recorte) > 500:
+                recorte = recorte[:500].rsplit(" ", 1)[0] or recorte[:500]
+            if not recorte or recorte.lower() in vistos:
+                continue
+            vistos.add(recorte.lower())
+            citacoes.append({"texto": recorte, "id_interacao": id_interacao})
+
+        relevancia_final = max(0, min(100, relevancia))
         saida.append(
             {
                 "id": str(hist.get("id") or f"hist-{n:03d}"),
@@ -159,9 +281,12 @@ def _normalizar(historias: list, interacoes: list) -> list:
                 "origem": str(hist.get("origem") or "Mensagem da comunidade"),
                 "categoria": str(hist.get("categoria") or "História da comunidade"),
                 "sentimento": str(hist.get("sentimento") or "Neutro"),
-                "relevancia": max(0, min(100, relevancia)),
+                "relevancia": relevancia_final,
+                "relevancia_nivel": _nivel_relevancia(relevancia_final),
                 "mensagem_original": original,
-                "destaques": [str(d) for d in (hist.get("destaques") or []) if str(d).strip()],
+                "citacoes": citacoes,
+                "interacoes_origem": [id_interacao] if id_interacao else [],
+                "destaques": [c["texto"] for c in citacoes],
                 "fatos": [str(f) for f in (hist.get("fatos") or []) if str(f).strip()],
                 "ativos": ativos,
             }
