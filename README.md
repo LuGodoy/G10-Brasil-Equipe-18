@@ -46,7 +46,7 @@ A tabela distingue integração de código, implementação em PR e homologaçã
 |---|---|---|
 | Integração Gemini no front-end | **Integrada à `main`** | PR #6, já incorporado; em falha técnica pode operar com dados demonstrativos identificados pela origem da análise. |
 | Citações literais e ID da interação | **Integradas à `main`** | PR #8, merge `210e8a2`; trecho é localizado no lote recebido e citações não verificadas são descartadas. |
-| Interface Streamlit (seis módulos) | **Em revisão** | PR #5; implementação de telas não comprova, por si só, a execução integrada. |
+| Interface Streamlit (seis módulos) | **Integrada à main** | PR #5, merge concluído; seis módulos e controles de curadoria incorporados. Testes funcionais e de integração CATP ainda pendentes de validação final. |
 | Pipeline de ingestão, preparação e análise | **Em revisão** | PR #3; requer alinhamento de contratos e regras de liberação. |
 | OCI Object Storage | **Em revisão** | PR #9; gravação e recuperação testadas pela desenvolvedora; ajuste residual solicitado para evitar fallback fictício em falhas de leitura/listagem. |
 | Plano de testes de aceitação | **Integrado à `main`** | `docs/CATP_TEST_PLAN.md` v1.1, PR #4. |
