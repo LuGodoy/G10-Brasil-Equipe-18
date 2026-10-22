@@ -84,6 +84,9 @@ def _regenerar(hid, aid):
     ss.regen[f"{hid}:{aid}"] = n
     for nome_campo, texto in svc.regenerar(h, aid, n).items():
         definir(_chave(hid, aid, nome_campo), texto)
+    # Resetar validação factual para "pendente" ao regenerar (requisito do review)
+    chave = f"{hid}:{aid}"
+    ss.validacao_factual[chave] = "pendente"
     ss.toast = "Novo rascunho gerado. Revise antes de aprovar."
 
 
@@ -259,10 +262,18 @@ def render():
         if b4.button("Solicitar ajustes"):
             _dialogo_ajustes(hid, aid, ativo["nome"])
         
-        # Botão Aprovar - RG-02: bloqueia com contradição
-        pode_aprovar = (validacao != "contradicao")
+        # Botão Aprovar - RG-01: só permite aprovação com validação "validada" + RG-02: bloqueia com contradição
+        pode_aprovar = (validacao == "validada")
+        razao_bloqueio = ""
+        if validacao == "contradicao":
+            razao_bloqueio = "Resolva a contradição"
+        elif validacao == "pendente":
+            razao_bloqueio = "Valide as evidências"
+        elif validacao == "insuficiente":
+            razao_bloqueio = "Evidências insuficientes"
+        
         if not pode_aprovar:
-            b5.markdown('<div class="cl-muted" style="text-align:right;padding-top:8px;font-size:12px;">Resolva a contradição</div>',
+            b5.markdown(f'<div class="cl-muted" style="text-align:right;padding-top:8px;font-size:12px;">{razao_bloqueio}</div>',
                        unsafe_allow_html=True)
         b5.button("✓ Aprovar", type="primary", disabled=not pode_aprovar, on_click=_aprovar, args=(hid, aid))
     else:

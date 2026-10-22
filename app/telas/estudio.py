@@ -17,6 +17,9 @@ def _regenerar(hid, aid):
     ss.regen[f"{hid}:{aid}"] = n
     for nome_campo, texto in svc.regenerar(h, aid, n).items():
         definir(_chave(hid, aid, nome_campo), texto)
+    # Resetar validação factual para "pendente" ao regenerar (requisito do review)
+    chave = f"{hid}:{aid}"
+    ss.validacao_factual[chave] = "pendente"
     ss.toast = "Novo rascunho gerado. Revise antes de enviar para curadoria."
 
 
