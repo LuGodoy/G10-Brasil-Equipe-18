@@ -287,10 +287,10 @@ python validar.py data/samples/cenarios_demo.json
 
 A pipeline foi atualizada para aderir à especificação oficial do CQF v1.0 e às regras de governança:
 
-1. **Novos Formatos de Ativos Gerados:**
-   - Além de `post_linkedin` e `resumo_newsletter`, o modelo `AtivoGerado` suporta os formatos centrais do MVP: `testemunho_estruturado` e `case_sucesso`.
+1. **Formatos de Ativos Gerados Suportados:**
+   - O modelo `AtivoGerado` suporta 5 formatos alinhados ao front-end e ao MVP: `testemunho_estruturado`, `case_sucesso`, `post_linkedin`, `resumo_newsletter` e `card_conquista`.
 2. **Regras de Governança Integradas (`src.orchestration.cqf`):**
-   - **RG-01 (Integridade de Evidências):** O LLM não pode alucinar ou alterar fatos. Todas as citações literais devem existir textualmente na interação de origem (`validar_integridade_evidencias`).
+   - **RG-01 (Integridade de Evidências):** O LLM não pode alucinar ou alterar fatos. Todas as citações literais devem existir textualmente na interação de origem (`validar_integridade_evidencias`), com normalização automática de espaços e quebras de linha para correspondência resiliente.
    - **RG-02 (Consistência Factual):** Contradições relevantes bloqueiam a aprovação editorial (`avaliar_aprovacao_editorial`).
    - **RG-03 (Trava de Publicação):** Conteúdos sem permissão de divulgação (`autorizada`) não são liberados para publicação (`validar_liberacao_publicacao`).
 3. **Cenários Oficiais CQF:**

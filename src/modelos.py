@@ -71,7 +71,7 @@ class AtivoGerado(BaseModel):
     """Conteúdo de marketing gerado a partir de histórias/interações aprovadas."""
     versao_schema: str = Field(default="1.0", pattern="^1\\.0$")
     id_ativo: str = Field(..., pattern=r"^ativo_[0-9]{3,}$")
-    tipo: Literal["testemunho_estruturado", "case_sucesso", "post_linkedin", "resumo_newsletter"]
+    tipo: Literal["testemunho_estruturado", "case_sucesso", "post_linkedin", "resumo_newsletter", "card_conquista"]
     titulo: Optional[str] = Field(None, max_length=200)
     texto: str = Field(..., min_length=1)
     interacoes_origem: List[int] = Field(..., min_length=1)

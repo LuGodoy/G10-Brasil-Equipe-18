@@ -119,7 +119,10 @@ def validar_integridade_evidencias(
             )
 
         texto_original = mapa_interacoes[id_interacao]
-        if texto_citacao not in texto_original:
+        # Normalização de espaços para correspondência resiliente a espaçamento e quebras de linha
+        citacao_normalizada = " ".join(texto_citacao.split())
+        original_normalizado = " ".join(texto_original.split())
+        if citacao_normalizada not in original_normalizado:
             erros.append(
                 f"RG-01 Violação: Citação #{idx} ('{texto_citacao[:40]}...') não foi encontrada textualmente na interação ID {id_interacao}."
             )
