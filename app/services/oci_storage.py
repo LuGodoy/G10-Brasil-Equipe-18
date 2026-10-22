@@ -68,6 +68,12 @@ def _config() -> tuple[object, str, str]:
     return cliente, namespace, bucket
 
 
+def nome_bucket() -> str:
+    """Nome do bucket em uso, conforme a configuracao do ambiente."""
+    _carregar_env()
+    return os.environ.get("OCI_BUCKET_NAME", BUCKET_PADRAO)
+
+
 def _lote_seguro(lote_id: str) -> str:
     """Sanitiza o id do lote para virar pasta: sem barra, espaco ou acento."""
     lote = (lote_id or "").strip()
@@ -111,7 +117,7 @@ def salvar_objeto(caminho: str, dados: dict) -> dict:
     return {
         "caminho": caminho,
         "tamanho_bytes": len(corpo),
-        "tamanho": f"{len(corpo) / 1024:.1f} KB",
+        "tamanho": f"{len(corpo) / 1024:.1f} KB".replace(".", ","),
         "salvo_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "status": "salvo",
     }
@@ -159,7 +165,7 @@ def salvar_pacote(lote_id: str, dados: dict) -> dict:
         "caminho": caminho,
         "lote": lote_id,
         "tamanho_bytes": len(corpo),
-        "tamanho": f"{len(corpo) / 1024:.1f} KB",
+        "tamanho": f"{len(corpo) / 1024:.1f} KB".replace(".", ","),
         "salvo_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "status": "salvo",
     }
@@ -199,7 +205,7 @@ def listar_pacotes() -> list[dict]:
                 "lote": partes[1],
                 "caminho": objeto.name,
                 "tamanho_bytes": objeto.size,
-                "tamanho": f"{(objeto.size or 0) / 1024:.1f} KB",
+                "tamanho": f"{(objeto.size or 0) / 1024:.1f} KB".replace(".", ","),
                 "salvo_em": str(objeto.time_modified or "")[:19],
             }
         )

@@ -142,6 +142,17 @@ def regenerar(historia, ativo_id, vez):
 
 
 # ---------- OCI ----------
+def bucket_atual():
+    """Nome do bucket em uso. Sem credencial, devolve o nome do mock."""
+    armazenamento = _storage()
+    if armazenamento is None:
+        return m.BUCKET
+    try:
+        return armazenamento.nome_bucket()
+    except Exception:
+        return m.BUCKET
+
+
 def listar_pacotes():
     """Lista os pacotes realmente salvos no bucket.
 
