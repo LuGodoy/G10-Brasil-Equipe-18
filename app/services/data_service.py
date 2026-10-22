@@ -143,10 +143,14 @@ def regenerar(historia, ativo_id, vez):
 
 # ---------- OCI ----------
 def listar_pacotes():
-    """Lista os pacotes salvos no bucket. Sem credencial, cai no mock."""
+    """Lista os pacotes realmente salvos no bucket.
+
+    Sem credencial nao existe persistencia: a lista volta vazia, em vez de
+    mostrar objetos ficticios como se estivessem gravados.
+    """
     armazenamento = _storage()
     if armazenamento is None:
-        return copy.deepcopy(m.PACOTES_OCI)
+        return []
     try:
         itens = armazenamento.listar_pacotes()
     except Exception as erro:
@@ -159,6 +163,7 @@ def listar_pacotes():
             "data": _data_br(item.get("salvo_em")),
             "tamanho": item.get("tamanho"),
             "status": "salvo",
+            "persistencia": "real",
         }
         for item in itens
     ]
@@ -167,16 +172,27 @@ def listar_pacotes():
 def salvar_no_oci(pacotes, lote_id):
     """Grava os pacotes do lote no bucket.
 
-    O nome do objeto vem do lote, entao repetir a gravacao sobrescreve em vez
-    de duplicar (idempotente). Sem credencial, devolve a lista como veio.
+    O caminho e montado pelo backend a partir do lote e do nome do arquivo,
+    entao repetir a gravacao sobrescreve em vez de duplicar (idempotente).
+    Sem credencial, nada e gravado: o item volta como falha de simulacao.
     """
     armazenamento = _storage()
     if armazenamento is None:
-        return pacotes
+        return [
+            {
+                **dict(pacote),
+                "status": "falhou",
+                "persistencia": "simulada",
+                "motivo": "OCI indisponivel: credencial nao configurada",
+                "data": None,
+                "tamanho": None,
+            }
+            for pacote in pacotes
+        ]
 
     atualizados = []
     for pacote in pacotes:
-        caminho = str(pacote.get("caminho") or f"ativos/{lote_id}/pacote-distribuicao.json")
+        caminho = armazenamento.caminho_do_lote(lote_id, pacote.get("caminho"))
         try:
             resultado = armazenamento.salvar_objeto(caminho, pacote)
             novo = dict(pacote)
@@ -187,12 +203,24 @@ def salvar_no_oci(pacotes, lote_id):
                     "data": _data_br(resultado.get("salvo_em")),
                     "tamanho": resultado.get("tamanho"),
                     "status": "salvo",
+                    "persistencia": "real",
+                    "motivo": None,
                 }
             )
         except Exception as erro:
             _registrar_erro_oci(erro)
             novo = dict(pacote)
-            novo["status"] = "falhou"
+            novo.update(
+                {
+                    "caminho": caminho,
+                    "lote": lote_id,
+                    "status": "falhou",
+                    "persistencia": "real",
+                    "motivo": str(erro),
+                    "data": None,
+                    "tamanho": None,
+                }
+            )
         atualizados.append(novo)
     return atualizados
 
@@ -202,25 +230,33 @@ def reenviar_pacote(pacote):
     armazenamento = _storage()
     if armazenamento is None:
         novo = dict(pacote)
-        novo.update({"status": "salvo", "data": "15/10/2026 14:40", "tamanho": "2,4 KB"})
+        novo.update(
+            {
+                "status": "falhou",
+                "persistencia": "simulada",
+                "motivo": "OCI indisponivel: credencial nao configurada",
+                "data": None,
+                "tamanho": None,
+            }
+        )
         return novo
 
-    caminho = str(pacote.get("caminho") or "")
-    if not caminho:
-        novo = dict(pacote)
-        novo["status"] = "falhou"
-        return novo
+    lote = pacote.get("lote") or ""
+    caminho = armazenamento.caminho_do_lote(lote, pacote.get("caminho"))
     try:
         resultado = armazenamento.salvar_objeto(caminho, pacote)
     except Exception as erro:
         _registrar_erro_oci(erro)
         novo = dict(pacote)
-        novo["status"] = "falhou"
+        novo.update({"status": "falhou", "persistencia": "real", "motivo": str(erro)})
         return novo
     novo = dict(pacote)
     novo.update(
         {
+            "caminho": caminho,
             "status": "salvo",
+            "persistencia": "real",
+            "motivo": None,
             "data": _data_br(resultado.get("salvo_em")),
             "tamanho": resultado.get("tamanho"),
         }

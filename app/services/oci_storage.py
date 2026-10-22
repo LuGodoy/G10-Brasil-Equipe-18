@@ -12,6 +12,7 @@ bucket em variaveis de ambiente ou no arquivo .env da raiz do projeto.
 from __future__ import annotations
 
 import json
+import re
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,12 +68,30 @@ def _config() -> tuple[object, str, str]:
     return cliente, namespace, bucket
 
 
-def caminho_do_pacote(lote_id: str) -> str:
-    """Nome do objeto no bucket. Mesmo lote -> mesmo caminho (sobrescreve)."""
+def _lote_seguro(lote_id: str) -> str:
+    """Sanitiza o id do lote para virar pasta: sem barra, espaco ou acento."""
     lote = (lote_id or "").strip()
-    if not lote:
-        raise ErroArmazenamento("lote_id vazio: nao da para nomear o pacote")
-    return f"{PREFIXO}/{lote}/{ARQUIVO_PACOTE}"
+    lote = re.sub(r"[^A-Za-z0-9._-]", "-", lote).strip(".-")
+    return lote or "lote"
+
+
+def caminho_do_lote(lote_id: str, arquivo: str | None = None) -> str:
+    """Caminho deterministico do objeto.
+
+    O caminho e sempre montado aqui, nunca copiado do dado recebido: o mesmo
+    lote com o mesmo arquivo cai sempre no mesmo objeto. Varios arquivos por
+    lote continuam suportados, diferenciados pelo nome do arquivo.
+    """
+    nome = Path(str(arquivo or ARQUIVO_PACOTE).replace("\\", "/")).name.strip()
+    nome = re.sub(r"[^A-Za-z0-9._-]", "-", nome).strip(".-") or ARQUIVO_PACOTE
+    if not nome.lower().endswith(".json"):
+        nome += ".json"
+    return f"{PREFIXO}/{_lote_seguro(lote_id)}/{nome}"
+
+
+def caminho_do_pacote(lote_id: str) -> str:
+    """Caminho do pacote principal do lote."""
+    return caminho_do_lote(lote_id, ARQUIVO_PACOTE)
 
 
 def salvar_objeto(caminho: str, dados: dict) -> dict:
