@@ -81,6 +81,10 @@ def _storage():
         except ImportError:
             return None
     if not oci_storage.disponivel():
+        motivo = ""
+        if hasattr(oci_storage, "motivo_indisponivel"):
+            motivo = oci_storage.motivo_indisponivel()
+        ULTIMO_ERRO_OCI = motivo or "OCI indisponivel: credencial nao configurada"
         return None
     return oci_storage
 
@@ -142,6 +146,11 @@ def regenerar(historia, ativo_id, vez):
 
 
 # ---------- OCI ----------
+def erro_armazenamento():
+    """Motivo da ultima falha de armazenamento (vazio quando nao houve)."""
+    return ULTIMO_ERRO_OCI
+
+
 def bucket_atual():
     """Nome do bucket em uso. Sem credencial, devolve o nome do mock."""
     armazenamento = _storage()
@@ -159,14 +168,18 @@ def listar_pacotes():
     Sem credencial nao existe persistencia: a lista volta vazia, em vez de
     mostrar objetos ficticios como se estivessem gravados.
     """
+    global ULTIMO_ERRO_OCI
     armazenamento = _storage()
     if armazenamento is None:
+        ULTIMO_ERRO_OCI = ULTIMO_ERRO_OCI or "OCI indisponivel: credencial nao configurada"
         return []
+    ULTIMO_ERRO_OCI = ""
     try:
         itens = armazenamento.listar_pacotes()
     except Exception as erro:
+        # Falha operacional fica visivel: lista vazia + motivo registrado.
         _registrar_erro_oci(erro)
-        return copy.deepcopy(m.PACOTES_OCI)
+        return []
     return [
         {
             "caminho": item["caminho"],
@@ -194,7 +207,7 @@ def salvar_no_oci(pacotes, lote_id):
                 **dict(pacote),
                 "status": "falhou",
                 "persistencia": "simulada",
-                "motivo": "OCI indisponivel: credencial nao configurada",
+                "motivo": ULTIMO_ERRO_OCI or "OCI indisponivel: credencial nao configurada",
                 "data": None,
                 "tamanho": None,
             }
@@ -245,7 +258,7 @@ def reenviar_pacote(pacote):
             {
                 "status": "falhou",
                 "persistencia": "simulada",
-                "motivo": "OCI indisponivel: credencial nao configurada",
+                "motivo": ULTIMO_ERRO_OCI or "OCI indisponivel: credencial nao configurada",
                 "data": None,
                 "tamanho": None,
             }
@@ -276,33 +289,18 @@ def reenviar_pacote(pacote):
 
 
 def conteudo_pacote(caminho):
-    """Le o JSON de um objeto do bucket. Sem credencial, devolve o mock."""
-    armazenamento = _storage()
-    if armazenamento is not None:
-        try:
-            conteudo = armazenamento.ler_objeto(str(caminho))
-            if conteudo is not None:
-                return conteudo
-        except Exception as erro:
-            _registrar_erro_oci(erro)
+    """Le o JSON de um objeto do bucket.
 
-    if caminho.endswith("evidencias.json"):
-        return {
-            "lote": "DEMO-001",
-            "evidencias": [
-                {"autor": h["autor"], "canal": h["canal"],
-                 "mensagem_original": h["mensagem_original"], "citacoes": h["destaques"], "fatos": h["fatos"]}
-                for h in m.HISTORIAS
-            ],
-        }
-    return {
-        "status": "sucesso",
-        "lote": "DEMO-001",
-        "gravado_em": "2026-10-15T14:32:00-03:00",
-        "historias": [
-            {"autor": h["autor"], "categoria": h["categoria"], "relevancia": h["relevancia"],
-             "citacao": h["destaques"][0],
-             "ativos": {a["id"]: {"status": "rascunho_aguardando_revisao"} for a in h["ativos"]}}
-            for h in m.HISTORIAS
-        ],
-    }
+    Devolve None quando o objeto nao existe ou a leitura falha -- nunca um
+    conteudo ficticio com aparencia de sucesso.
+    """
+    armazenamento = _storage()
+    if armazenamento is None:
+        global ULTIMO_ERRO_OCI
+        ULTIMO_ERRO_OCI = ULTIMO_ERRO_OCI or "OCI indisponivel: credencial nao configurada"
+        return None
+    try:
+        return armazenamento.ler_objeto(str(caminho))
+    except Exception as erro:
+        _registrar_erro_oci(erro)
+        return None

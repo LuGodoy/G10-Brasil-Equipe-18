@@ -144,6 +144,15 @@ def disponivel() -> bool:
         return False
 
 
+def motivo_indisponivel() -> str:
+    """Motivo real da indisponibilidade: credencial ausente, invalida, rede."""
+    try:
+        _config()
+        return ""
+    except ErroArmazenamento as erro:
+        return str(erro)
+
+
 def salvar_pacote(lote_id: str, dados: dict) -> dict:
     """Grava o pacote do lote e devolve o resumo do que foi salvo."""
     cliente, namespace, bucket = _config()
