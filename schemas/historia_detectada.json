@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://communitylab/schemas/historia_detectada.schema.json",
+  "title": "HistoriaDetectada",
+  "description": "História de sucesso detectada e seus elementos extraídos (fatos, resultados e citações). Toda citação deve ser um trecho LITERAL do texto da interação indicada.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id_historia",
+    "tipo",
+    "resumo",
+    "interacoes_origem",
+    "fatos",
+    "resultados",
+    "citacoes",
+    "autorizacao_divulgacao",
+    "status_revisao"
+  ],
+  "properties": {
+    "versao_schema": { "type": "string", "const": "1.1" },
+    "id_historia": { "type": "string", "pattern": "^historia_[0-9]{3,}$" },
+    "tipo": {
+      "type": "string",
+      "enum": ["conquista_profissional", "superacao", "projeto_destaque"]
+    },
+    "resumo": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "interacoes_origem": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "integer", "minimum": 1 }
+    },
+    "fatos": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Fatos afirmados nas mensagens. Nada que não esteja no texto."
+    },
+    "resultados": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Resultados concretos relatados."
+    },
+    "citacoes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["texto", "id_interacao"],
+        "properties": {
+          "texto": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "id_interacao": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "autorizacao_divulgacao": {
+      "type": "string",
+      "enum": ["pendente", "autorizada", "negada", "nao_aplicavel"],
+      "description": "Divulgação de relato identificável depende de autorização. nao_aplicavel: dados simulados ou totalmente anonimizados."
+    },
+    "confianca": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status_revisao": {
+      "type": "string",
+      "enum": ["pendente", "aprovado", "rejeitado"]
+    }
+  }
+}
