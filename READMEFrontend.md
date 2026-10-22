@@ -43,15 +43,31 @@ O CommunityLab usa um estilo híbrido **SaaS corporativo + IA**, com visual limp
 
 ## O que o front faz
 
-O fluxo tem 4 etapas, na mesma ordem do menu lateral:
+O fluxo tem 6 módulos, organizados no menu lateral:
 
-| Etapa | Tela | O que acontece |
-|---|---|---|
-| 1 | Ingestão | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal |
-| 2 | Processamento | Acompanha as etapas da análise (simulada) e mostra erro ao salvar no OCI com opção de tentar novamente |
-| 3 | Histórias detectadas | Lista as histórias de sucesso com categoria, relevância e trecho original, com filtros |
-| 3 | Curadoria | Revisa os rascunhos, mostra as evidências, exige confirmação de autorização e permite aprovar, rejeitar ou regenerar |
-| 4 | Armazenamento OCI | Lista os pacotes salvos no bucket, com visualização do JSON e download |
+| Módulo | O que acontece |
+|---|---|
+| **Dashboard** | Visão geral com KPIs (interações, histórias, ativos gerados) e ações rápidas para navegar |
+| **Importação** | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal. Botão "Importar interações" dá início ao processamento |
+| **Histórias** | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima. Botão "Ver no Estúdio" para cada história |
+| **Estúdio de Conteúdo** | Visualização lado a lado de evidências e rascunhos. Coluna esquerda: mensagem original com destaques, fatos extraídos. Coluna direita: conteúdo editável (Testemunho estruturado ou Case de sucesso), contador de caracteres, seção "Fontes deste conteúdo" com rastreabilidade, botões Regenerar, Copiar e Enviar para curadoria |
+| **Curadoria** | Revisa os rascunhos com três controles independentes: (1) Validação factual (Pendente, Validada, Evidências insuficientes, Contradição não resolvida), (2) Curadoria editorial (Rascunho, Ajustes solicitados, Aprovado, Rejeitado), (3) Autorização de publicação (Não registrada, Registrada). A autorização NÃO bloqueia a aprovação editorial. Regra RG-02: com "Contradição não resolvida", o botão Aprovar fica desabilitado. Regra RG-03: "Liberado para publicação" aparece apenas quando Validada + Aprovado + Registrada. O sistema nunca publica automaticamente |
+| **Histórico** | Lista os pacotes salvos no bucket OCI, com visualização do JSON e download |
+
+**Fluxo de trabalho:**
+1. **Importar** → carregar interações da comunidade
+2. **Processar** → análise automática (transição entre Importação e Histórias)
+3. **Revisar** → explorar histórias e editar rascunhos no Estúdio
+4. **Decidir** → validar, aprovar ou rejeitar na Curadoria
+5. **Consultar** → verificar pacotes salvos no Histórico
+
+**Regras de Curadoria (conforme CQF):**
+- **Três controles independentes:** Validação factual, Curadoria editorial e Autorização de publicação funcionam de forma separada
+- **RG-01:** A interface nunca preenche lacunas com informação inventada. "Regenerar" apenas alterna entre variações fictícias baseadas nas evidências
+- **RG-02:** Com "Contradição não resolvida", o botão Aprovar fica desabilitado até que a contradição seja resolvida ou a validação seja alterada
+- **RG-03:** O indicador "Liberado para publicação" aparece apenas quando os três controles estão completos: Validação = Validada, Curadoria = Aprovado, Autorização = Registrada
+- **Autorização não bloqueia aprovação:** É possível aprovar editorialmente um ativo mesmo sem autorização registrada (útil para análise interna)
+- **Nada é publicado automaticamente:** Mesmo com "Liberado para publicação", o sistema não publica. A decisão final é do time
 
 **Princípio do produto:** a IA sugere, o time decide. Nada é publicado automaticamente, e cada ativo gerado aponta para a mensagem original.
 
@@ -77,7 +93,7 @@ O app abre em `http://localhost:8501`.
 Na barra lateral, em **Modo demonstração**, dá para:
 
 - simular erro ao salvar no OCI (mostra a tela de falha e o botão "Tentar novamente");
-- alternar a tela de Armazenamento OCI entre os estados normal, vazio, carregando e erro de conexão;
+- alternar a tela de Histórico entre os estados normal, vazio, carregando e erro de conexão;
 - reiniciar a demonstração.
 
 Para acelerar ou desacelerar a simulação do Processamento, use a variável `COMMUNITYLAB_DELAY` (segundos por etapa).
@@ -90,11 +106,13 @@ app/
   state.py                   estado da sessão
   styles.py                  CSS e helpers de HTML
   telas/                     uma tela por arquivo
-    ingestao.py
+    dashboard.py             (nova) visão geral do sistema
+    importacao.py            (era ingestao.py) upload de interações
     processamento.py
     historias.py
+    estudio.py               (nova) placeholder para ETAPA 3
     curadoria.py
-    oci.py
+    historico.py             (era oci.py) consulta de pacotes salvos
   services/
     data_service.py          ÚNICO ponto de contato com os dados
   mocks/
@@ -158,10 +176,12 @@ Pacote salvo no OCI (listagem):
 
 ## Pontos para alinhar com o back
 
-- Quais **tipos de ativo** o back vai gerar (hoje o front mostra Post para LinkedIn, Card de conquista, Resumo do projeto e Roteiro de história).
+- **Tipos de ativo:** o front agora usa Testemunho estruturado (título + descrição + citação) e Case de sucesso (texto narrativo). Confirmar se o back vai gerar nesse formato.
+- **Rastreabilidade:** o front espera um campo `fontes` em cada ativo, com a estrutura: `[{"afirmacao": "...", "fato": "...", "trecho": "..."}]`. Alinhar formato com o back.
 - Se o campo `tipo` da interação vai ser preenchido e com quais valores.
 - O que o pacote salvo no OCI deve conter. Hoje o JSON de exemplo só tem o status dos ativos. O ideal é guardar também o texto gerado, as citações com a mensagem de origem e se a autorização foi confirmada.
 - Se o status de aprovação ou rejeição feito na Curadoria deve ser atualizado no bucket e como.
+- **Fluxo:** o front agora tem Histórias → Estúdio → Curadoria. Confirmar se o back segue essa sequência.
 
 ## Limitações conhecidas do protótipo
 
@@ -169,6 +189,7 @@ Pacote salvo no OCI (listagem):
 - Aprovar ou rejeitar só vale durante a sessão e não grava em lugar nenhum.
 - "Copiar texto" mostra um bloco com ícone de copiar, porque o Streamlit não acessa a área de transferência.
 - Testado no Streamlit 1.66. O `requirements-front.txt` pede `>=1.37`.
+- Tipos de ativo disponíveis: Testemunho estruturado (título + descrição + citação) e Case de sucesso (texto narrativo completo).
 
 ## Como contribuir no front
 
@@ -182,7 +203,7 @@ Pacote salvo no OCI (listagem):
 1. Abra o Prompt de Comando ou PowerShell.
 2. Navegue até a pasta do projeto:
    ```bash
-   cd "c:\Users\guilh\Documents\tissy\communitylab-front\communitylab-front"
+   cd "c:\Users\communitylab-front\communitylab-front"
    ```
 3. Ative o ambiente virtual (se existir):
    ```bash

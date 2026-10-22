@@ -6,7 +6,7 @@ import streamlit as st
 
 from state import MENU, campo, init_state, ir_para, reiniciar
 from styles import injetar_css, md
-from telas import curadoria, historias, ingestao, oci, processamento
+from telas import curadoria, dashboard, estudio, historias, historico, importacao, processamento
 
 st.set_page_config(page_title="CommunityLab", page_icon="🧪", layout="wide")
 injetar_css()
@@ -14,11 +14,13 @@ init_state()
 
 ss = st.session_state
 TELAS = {
-    "ingestao": ingestao.render,
+    "dashboard": dashboard.render,
+    "importacao": importacao.render,
     "processamento": processamento.render,
     "historias": historias.render,
+    "estudio": estudio.render,
     "curadoria": curadoria.render,
-    "oci": oci.render,
+    "historico": historico.render,
 }
 
 with st.sidebar:
@@ -26,7 +28,7 @@ with st.sidebar:
     md('<div class="cl-slogan">Histórias reais. Impacto inteligente.</div>')
     md('<div class="cl-ws"><b>Programa ONE</b><br><small>Oracle Next Education + Alura</small></div>')
     md('<div class="cl-label">ESPAÇO DE TRABALHO</div>')
-    ativo = "ingestao" if ss.pagina == "processamento" else ss.pagina
+    ativo = "importacao" if ss.pagina == "processamento" else ss.pagina
     for chave, rotulo in MENU:
         st.button(rotulo, key=f"nav_{chave}", type="primary" if chave == ativo else "secondary",
                   on_click=ir_para, args=(chave,))
@@ -35,7 +37,7 @@ with st.sidebar:
     md('<div class="cl-muted" style="margin-top:12px;"><b>CM</b> &nbsp;Comunidade e Marketing<br>Ambiente demonstrativo</div>')
     with st.expander("⚙️ Modo demonstração"):
         campo(st.checkbox, "Simular erro ao salvar no OCI", "demo_erro_oci", False)
-        campo(st.selectbox, "Estado da tela Armazenamento OCI", "demo_estado_oci", "Normal", options=oci.ESTADOS_DEMO)
+        campo(st.selectbox, "Estado da tela Histórico", "demo_estado_oci", "Normal", options=historico.ESTADOS_DEMO)
         st.button("Reiniciar demonstração", on_click=reiniciar)
 
 if ss.get("toast"):

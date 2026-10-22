@@ -12,10 +12,12 @@ from mocks import mock_data as m
 from services import data_service as svc
 
 MENU = [
-    ("ingestao", "📥  Ingestão"),
-    ("historias", "💬  Histórias detectadas"),
+    ("dashboard", "📊  Dashboard"),
+    ("importacao", "📥  Importação"),
+    ("historias", "💬  Histórias"),
+    ("estudio", "✨  Estúdio de Conteúdo"),
     ("curadoria", "✅  Curadoria"),
-    ("oci", "🗄️  Armazenamento OCI"),
+    ("historico", "🗄️  Histórico"),
 ]
 CATEGORIA_TODAS = "Todas as categorias"
 CANAL_TODOS = "Todos os canais"
@@ -26,7 +28,7 @@ def init_state():
     if ss.get("_iniciado"):
         return
     ss._iniciado = True
-    ss.pagina = "ingestao"
+    ss.pagina = "dashboard"
     ss.dados = {}
     ss.interacoes = copy.deepcopy(m.INTERACOES)
     ss.arquivo = {"nome": m.ARQUIVO_DEMO, "tamanho": m.ARQUIVO_DEMO_TAMANHO, "origem": "Arquivo JSON"}
@@ -36,15 +38,25 @@ def init_state():
     ss.proc_status = "novo"  # novo | retry | erro | concluido
     ss.proc_etapas = ["pendente"] * 6
     ss.historia_atual = None
-    ss.status_ativos = {}  # "hist:ativo" -> rascunho | aprovado | rejeitado
-    ss.motivos = {}
+    # Controles da Curadoria (3 dimensões independentes)
+    ss.validacao_factual = {}  # "hist:ativo" -> pendente | validada | insuficiente | contradicao
+    ss.status_curadoria = {}  # "hist:ativo" -> rascunho | ajustes | aprovado | rejeitado
+    ss.autorizacao = {}  # "hist:ativo" -> nao_registrada | registrada
+    ss.observacoes = {}  # "hist:ativo" -> texto de observação
+    ss.motivos = {}  # "hist:ativo" -> texto de motivo de rejeição
+    # Legado (manter compatibilidade)
+    ss.status_ativos = {}  # "hist:ativo" -> rascunho | aprovado | rejeitado (legado)
     ss.regen = {}
     ss.pacotes_oci = svc.listar_pacotes()
     ss.toast = None
     ss.mostrar_copia = False
     for h in ss.historias:
         for a in h["ativos"]:
-            ss.status_ativos[f"{h['id']}:{a['id']}"] = "rascunho"
+            chave = f"{h['id']}:{a['id']}"
+            ss.status_ativos[chave] = "rascunho"
+            ss.validacao_factual[chave] = "pendente"
+            ss.status_curadoria[chave] = "rascunho"
+            ss.autorizacao[chave] = "nao_registrada"
 
 
 def reiniciar():

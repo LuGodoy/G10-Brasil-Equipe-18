@@ -1,3 +1,4 @@
+"""Tela Importação - Upload de interações da comunidade."""
 import json
 
 import streamlit as st
@@ -12,7 +13,7 @@ def render():
     topbar()
     cabecalho(
         "Etapa 1 de 4 · Importar",
-        "Ingestão",
+        "Importação",
         "Carregue conversas da comunidade para identificar histórias com potencial de marketing.",
     )
     with st.container(border=True):
@@ -58,7 +59,7 @@ def _upload():
                 except ValueError as erro:
                     st.error(str(erro))
         md(
-            '<div style="border:1px solid #E6E8EE;border-radius:10px;padding:12px 14px;background:#fff;">'
+            '<div style="border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px;background:#fff;">'
             f'📄 <b>{esc(ss.arquivo["nome"])}</b><br>'
             f'<span class="cl-muted">{esc(ss.arquivo["tamanho"])} · carregado com sucesso</span></div>'
         )
@@ -85,7 +86,7 @@ def _colar_json():
         try:
             n = len(svc.interacoes_de_json(texto))
             valido = True
-            md(f'<span style="color:#1E7A46;">✓ JSON válido · {n} interações reconhecidas</span>')
+            md(f'<span style="color:#047857;">✓ JSON válido · {n} interações reconhecidas</span>')
         except ValueError as erro:
             st.error(str(erro))
         st.button("Carregar JSON", disabled=not valido, on_click=_carregar_json)
@@ -141,4 +142,4 @@ def _rodape():
             '<span class="cl-muted">Exemplo fictício. Não representa depoimentos reais do Programa ONE.</span>'
         )
     with dir_:
-        st.button("✨ Analisar interações", type="primary", on_click=_analisar, disabled=n == 0)
+        st.button("📥 Importar interações", type="primary", on_click=_analisar, disabled=n == 0)

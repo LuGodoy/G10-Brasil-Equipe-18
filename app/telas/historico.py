@@ -1,3 +1,4 @@
+"""Tela Histórico - Consulta e recuperação de registros persistidos no OCI."""
 import json
 
 import streamlit as st
@@ -93,7 +94,7 @@ def render():
     ss = st.session_state
     estado = valor("demo_estado_oci", "Normal")
     topbar()
-    cabecalho("Etapa 4 de 4 · Armazenamento", "Armazenamento OCI",
+    cabecalho("Etapa 4 de 4 · Armazenamento", "Histórico",
               "Pacotes de histórias, evidências e rascunhos salvos no seu bucket.", extra=chip("OCI Always Free", "green"))
 
     pacotes = ss.pacotes_oci
@@ -118,8 +119,8 @@ def render():
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             md('<div style="text-align:center;padding:30px 0;">📂<br><b>Nenhum pacote salvo ainda</b><br>'
-               '<span class="cl-muted">Processe um lote na Ingestão para guardar seus primeiros pacotes.</span></div>')
-            st.button("→ Ir para Ingestão", type="primary", on_click=ir_para, args=("ingestao",))
+               '<span class="cl-muted">Processe um lote na Importação para guardar seus primeiros pacotes.</span></div>')
+            st.button("→ Ir para Importação", type="primary", on_click=ir_para, args=("importacao",))
     else:
         salvos = [p for p in pacotes if p["status"] == "salvo"]
         lotes = {p["lote"] for p in salvos}
