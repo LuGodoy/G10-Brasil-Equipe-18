@@ -592,7 +592,7 @@ def test_ativo_gerado_novos_tipos_cqf():
     base_dir = Path(__file__).parent.parent
     schema_ativo = carregar_schema(str(base_dir / "schemas/ativo_gerado_schema.json"))
 
-    for tipo in ["testemunho_estruturado", "case_sucesso"]:
+    for tipo in ["testemunho_estruturado", "case_sucesso", "card_conquista"]:
         ativo_dict = {
             "versao_schema": "1.0",
             "id_ativo": "ativo_101",
@@ -868,6 +868,105 @@ def test_cenarios_cqf_json_validacao_completa():
         # 3. Integridade das evidências (RG-01)
         val_ev, err_ev = validar_integridade_evidencias(historia, [interacao])
         assert val_ev, f"[{caso_id}] Falha de integridade das evidências: {err_ev}"
+
+
+def test_ativo_gerado_card_conquista_validacao_completa():
+    """Valida especificamente o contrato do ativo 'card_conquista' utilizado pelo Front-end."""
+    base_dir = Path(__file__).parent.parent
+    schema_ativo = carregar_schema(str(base_dir / "schemas/ativo_gerado_schema.json"))
+
+    # 1. Ativo válido com tipo card_conquista compatível com READMEFrontend.md
+    ativo_card = {
+        "versao_schema": "1.0",
+        "id_ativo": "ativo_501",
+        "tipo": "card_conquista",
+        "titulo": "Marina Costa · Nova Desenvolvedora Júnior",
+        "texto": "Consegui minha primeira vaga como desenvolvedora júnior após 6 meses de estudo.",
+        "interacoes_origem": [1],
+        "status_revisao": "pendente",
+        "criado_em": "2026-10-22T12:00:00Z",
+        "id_avaliacao_cqf": "cqf_001",
+    }
+
+    # Validação via JSON Schema Draft 2020-12
+    valido, erros = validar_ativo(ativo_card, schema_ativo)
+    assert valido, f"Erro na validação do schema para card_conquista: {erros}"
+
+    # Validação via Modelo Pydantic v2
+    modelo = AtivoGerado.model_validate(ativo_card)
+    assert modelo.tipo == "card_conquista"
+    assert modelo.id_ativo == "ativo_501"
+    assert modelo.titulo == "Marina Costa · Nova Desenvolvedora Júnior"
+    assert modelo.interacoes_origem == [1]
+
+    # 2. Preservação dos tipos já existentes (garantir que nenhum formato existente foi quebrado)
+    todos_os_tipos = [
+        "testemunho_estruturado",
+        "case_sucesso",
+        "post_linkedin",
+        "resumo_newsletter",
+        "card_conquista",
+    ]
+    for tipo_item in todos_os_tipos:
+        dados_tipo = {
+            "versao_schema": "1.0",
+            "id_ativo": "ativo_999",
+            "tipo": tipo_item,
+            "texto": f"Exemplo de conteúdo para o tipo {tipo_item}",
+            "interacoes_origem": [10],
+            "status_revisao": "aprovado",
+            "criado_em": "2026-10-22T12:00:00Z",
+        }
+        ok, errs = validar_ativo(dados_tipo, schema_ativo)
+        assert ok, f"Tipo {tipo_item} deveria ser válido, mas falhou: {errs}"
+        m = AtivoGerado.model_validate(dados_tipo)
+        assert m.tipo == tipo_item
+
+    # 3. Rejeição de tipos não autorizados
+    ativo_invalido = ativo_card.copy()
+    ativo_invalido["tipo"] = "tipo_inexistente"
+    valido_inv, erros_inv = validar_ativo(ativo_invalido, schema_ativo)
+    assert not valido_inv
+    assert any("tipo" in e for e in erros_inv)
+
+    with pytest.raises(Exception):
+        AtivoGerado.model_validate(ativo_invalido)
+
+
+def test_regra_rg01_normalizacao_espacos():
+    """Valida que a regra RG-01 normaliza múltiplos espaços e quebras de linha entre citação e texto original."""
+    interacoes = [
+        Interacao(
+            id=1,
+            autor_id="membro_001",
+            data="2026-10-15T10:00:00Z",
+            # Texto original com quebra de linha e múltiplos espaços
+            texto="Consegui minha primeira vaga como\n   desenvolvedora júnior   após 6 meses de estudo."
+        )
+    ]
+
+    # Citação com espaçamento padronizado em espaço simples
+    historia_com_espaco_normalizado = HistoriaDetectada(
+        id_historia="historia_001",
+        tipo="conquista_profissional",
+        resumo="Conquista de vaga",
+        interacoes_origem=[1],
+        fatos=["Foi contratada como desenvolvedora júnior"],
+        resultados=["Primeira vaga em tech"],
+        citacoes=[
+            Citacao(
+                texto="Consegui minha primeira vaga como desenvolvedora júnior",
+                id_interacao=1
+            )
+        ],
+        autorizacao_divulgacao="autorizada",
+        status_revisao="aprovado"
+    )
+
+    valido, erros = validar_integridade_evidencias(historia_com_espaco_normalizado, interacoes)
+    assert valido, f"RG-01 deveria aceitar citação com espaços normalizados, mas falhou: {erros}"
+    assert len(erros) == 0
+
 
 
 
