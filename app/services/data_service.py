@@ -203,7 +203,7 @@ def salvar_no_oci(pacotes, lote_id, historias=None):
     Sem conteudo, nada e gravado: o item volta como falha, para nao salvar
     um arquivo apenas com metadados.
     """
-    if not isinstance(historias, (list, tuple)) or not historias:
+    if historias is None:
         return [
             {
                 **dict(pacote),
@@ -215,6 +215,23 @@ def salvar_no_oci(pacotes, lote_id, historias=None):
             }
             for pacote in pacotes
         ]
+
+    if not isinstance(historias, (list, tuple)):
+        return [
+            {
+                **dict(pacote),
+                "status": "falhou",
+                "persistencia": "nenhuma",
+                "motivo": "Conteudo em formato invalido: esperada uma lista de historias",
+                "data": None,
+                "tamanho": None,
+            }
+            for pacote in pacotes
+        ]
+
+    # lista vazia e resultado valido: o lote foi processado e nao havia
+    # historias elegiveis. Nao e falha tecnica.
+    historias = list(historias)
 
     conteudo = {
         "versao_schema": "1.0",
