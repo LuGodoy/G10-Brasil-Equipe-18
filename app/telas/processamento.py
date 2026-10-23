@@ -132,7 +132,7 @@ def render():
         if terminou:
             ss.proc_status = "concluido"
             ss.historias = svc.analisar(ss.interacoes)
-            ss.pacotes_oci = svc.salvar_no_oci(ss.pacotes_oci, ss.lote_id)
+            ss.pacotes_oci = svc.salvar_no_oci(ss.pacotes_oci, ss.lote_id, ss.historias)
         ss.proc_etapas = etapas
         with area.container():
             _desenhar(etapas, botoes=True)

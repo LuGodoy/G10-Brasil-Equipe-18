@@ -19,7 +19,15 @@ ESTADOS_DEMO = ["Normal", "Vazio", "Carregando", "Erro de conexão"]
 
 @_dialogo("Visualizar JSON", width="large")
 def _dialogo_json(caminho):
-    conteudo = json.dumps(svc.conteudo_pacote(caminho), ensure_ascii=False, indent=2)
+    dados = svc.conteudo_pacote(caminho)
+    if dados is None:
+        st.caption(caminho)
+        caixa("red", "<b>Não foi possível ler este objeto</b><br>"
+                     "O arquivo não existe no bucket ou a leitura falhou. "
+                     "Nenhum conteúdo fictício é exibido.")
+        st.caption("Os ativos são rascunhos e aguardam revisão humana.")
+        return
+    conteudo = json.dumps(dados, ensure_ascii=False, indent=2)
     st.caption(f"{caminho} · Salvo com sucesso")
     st.code(conteudo, language="json")
     st.download_button("⬇ Baixar", data=conteudo, file_name=caminho.split("/")[-1], mime="application/json", key="dl_dialogo")
@@ -76,8 +84,13 @@ def _tabela(pacotes):
             a1, a2 = c[5].columns(2)
             if a1.button("</> Ver JSON", key=f"ver_{p['caminho']}"):
                 _dialogo_json(p["caminho"])
-            a2.download_button("⬇ Baixar", data=json.dumps(svc.conteudo_pacote(p["caminho"]), ensure_ascii=False, indent=2),
-                               file_name=p["caminho"].split("/")[-1], mime="application/json", key=f"dl_{p['caminho']}")
+            dados_download = svc.conteudo_pacote(p["caminho"])
+            if dados_download is None:
+                a2.caption("indisponível")
+            else:
+                a2.download_button("⬇ Baixar", data=json.dumps(dados_download, ensure_ascii=False, indent=2),
+                                   file_name=p["caminho"].split("/")[-1], mime="application/json",
+                                   key=f"dl_{p['caminho']}")
         else:
             c[4].markdown(chip("Falhou", "red"), unsafe_allow_html=True)
             c[5].button("↻ Tentar novamente", key=f"retry_{p['caminho']}", on_click=_tentar_de_novo, args=(i,))
@@ -97,14 +110,30 @@ def render():
     cabecalho("Etapa 4 de 4 · Armazenamento", "Histórico",
               "Pacotes de histórias, evidências e rascunhos salvos no seu bucket.", extra=chip("OCI Always Free", "green"))
 
-    pacotes = ss.pacotes_oci
+    # Fonte principal e o bucket: recarregar a pagina nao pode esconder o que
+    # ja foi gravado. A sessao serve de apoio quando o bucket esta vazio.
+    pacotes = svc.listar_pacotes()
+    if not pacotes:
+        pacotes = ss.pacotes_oci
+    vistos = set()
+    unicos = []
+    for pacote in pacotes:
+        chave = pacote.get("caminho")
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+        unicos.append(pacote)
+    pacotes = unicos
+    motivo_erro = svc.erro_armazenamento()
+    if motivo_erro:
+        caixa("red", f"<b>Falha ao consultar o bucket</b><br>{motivo_erro}")
     if estado == "Erro de conexão":
         c1, c2 = st.columns([4, 1])
         with c1:
             caixa("red", "<b>Não foi possível consultar o bucket</b><br>Verifique a conexão com a OCI e tente novamente. Os dados atuais não estão disponíveis.")
         with c2:
             st.button("↻ Tentar novamente", on_click=_reconectar)
-        _metricas(m.BUCKET, "Indisponível", "Não foi possível atualizar", "Não consultada", "Sem dados atuais do bucket")
+        _metricas(svc.bucket_atual() or "indisponível", "Indisponível", "Não foi possível atualizar", "Não consultada", "Sem dados atuais do bucket")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             md('<div style="text-align:center;padding:40px 0;">☁️<br><b>Os pacotes não puderam ser carregados</b><br>'
@@ -115,7 +144,7 @@ def render():
             md('<b style="font-size:18px;">Pacotes salvos</b>' + '<div class="cl-skel"></div>' * 6
                + '<span class="cl-muted">Consultando pacotes no Object Storage...</span>')
     elif estado == "Vazio" or not pacotes:
-        _metricas(m.BUCKET, "0", "Nenhum lote processado", "Nenhuma gravação", "Aguardando o primeiro lote")
+        _metricas(svc.bucket_atual() or "indisponível", "0", "Nenhum lote processado", "Nenhuma gravação", "Aguardando o primeiro lote")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             md('<div style="text-align:center;padding:30px 0;">📂<br><b>Nenhum pacote salvo ainda</b><br>'
@@ -125,8 +154,9 @@ def render():
         salvos = [p for p in pacotes if p["status"] == "salvo"]
         lotes = {p["lote"] for p in salvos}
         ultima = max((p["data"] for p in salvos), default=None)
-        _metricas(m.BUCKET, str(len(lotes)), f"{len(salvos)} objetos no bucket", ultima or "Nenhuma gravação",
-                  f"Lote {sorted(lotes)[-1]}" if lotes else "Aguardando o primeiro lote")
+        lote_recente = max(salvos, key=lambda p: p.get("data") or "")["lote"] if salvos else None
+        _metricas(svc.bucket_atual() or "indisponível", str(len(lotes)), f"{len(salvos)} objetos no bucket", ultima or "Nenhuma gravação",
+                  f"Lote {lote_recente}" if lote_recente else "Aguardando o primeiro lote")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             _tabela(pacotes)
