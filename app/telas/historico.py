@@ -133,7 +133,7 @@ def render():
             caixa("red", "<b>Não foi possível consultar o bucket</b><br>Verifique a conexão com a OCI e tente novamente. Os dados atuais não estão disponíveis.")
         with c2:
             st.button("↻ Tentar novamente", on_click=_reconectar)
-        _metricas(svc.bucket_atual(), "Indisponível", "Não foi possível atualizar", "Não consultada", "Sem dados atuais do bucket")
+        _metricas(svc.bucket_atual() or "indisponível", "Indisponível", "Não foi possível atualizar", "Não consultada", "Sem dados atuais do bucket")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             md('<div style="text-align:center;padding:40px 0;">☁️<br><b>Os pacotes não puderam ser carregados</b><br>'
@@ -144,7 +144,7 @@ def render():
             md('<b style="font-size:18px;">Pacotes salvos</b>' + '<div class="cl-skel"></div>' * 6
                + '<span class="cl-muted">Consultando pacotes no Object Storage...</span>')
     elif estado == "Vazio" or not pacotes:
-        _metricas(svc.bucket_atual(), "0", "Nenhum lote processado", "Nenhuma gravação", "Aguardando o primeiro lote")
+        _metricas(svc.bucket_atual() or "indisponível", "0", "Nenhum lote processado", "Nenhuma gravação", "Aguardando o primeiro lote")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
             md('<div style="text-align:center;padding:30px 0;">📂<br><b>Nenhum pacote salvo ainda</b><br>'
@@ -155,7 +155,7 @@ def render():
         lotes = {p["lote"] for p in salvos}
         ultima = max((p["data"] for p in salvos), default=None)
         lote_recente = max(salvos, key=lambda p: p.get("data") or "")["lote"] if salvos else None
-        _metricas(svc.bucket_atual(), str(len(lotes)), f"{len(salvos)} objetos no bucket", ultima or "Nenhuma gravação",
+        _metricas(svc.bucket_atual() or "indisponível", str(len(lotes)), f"{len(salvos)} objetos no bucket", ultima or "Nenhuma gravação",
                   f"Lote {lote_recente}" if lote_recente else "Aguardando o primeiro lote")
         with st.container(border=True):
             md('<b style="font-size:18px;">Pacotes salvos</b>')
