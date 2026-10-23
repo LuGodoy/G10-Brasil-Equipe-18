@@ -88,6 +88,20 @@ python -m streamlit run app/main.py
 
 O app abre em `http://localhost:8501`.
 
+## Rastreabilidade de evidências (CATP-007)
+
+Cada evidência citada está vinculada à interação original através do **ID da interação**:
+
+- **ID da interação:** campo `id` do arquivo importado (se inteiro >= 1), senão a posição da interação no lote (começando em 1)
+- **Exibição:** coluna "ID" na prévia de Importação, linha "ID da interação" no Estúdio e na Curadoria
+- **Conferência literal:** seção "Evidências citadas" mostra cada trecho com:
+  - ✅ Selo verde "Trecho literal conferido" se o trecho existe na mensagem original
+  - ⚠️ Selo amarelo "Trecho não encontrado" se a interação existe mas o trecho não está nela
+  - "Conferência indisponível" (neutro) se a interação não existe no lote atual
+- **Função centralizada:** `svc.id_interacao(interacao, posicao_1indexed)` em `data_service.py` (regra idêntica ao llm.py)
+
+O campo `id_interacao` de cada citação nunca é 0 - quando a informação não está disponível, exibe-se "ID não informado".
+
 ## Modo demonstração
 
 Na barra lateral, em **Modo demonstração**, dá para:
