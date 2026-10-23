@@ -88,6 +88,21 @@ python -m streamlit run app/main.py
 
 O app abre em `http://localhost:8501`.
 
+## Configuração da chave do LLM (Gemini)
+
+A análise de interações usa o Gemini quando existe uma chave configurada. Sem chave, o app continua funcionando com os dados fictícios.
+
+**Desenvolvimento local:** crie o arquivo `.streamlit/secrets.toml` na raiz do projeto:
+
+```toml
+GEMINI_API_KEY = "sua-chave-aqui"
+# opcional: GEMINI_MODEL = "gemini-3.6-flash"
+```
+
+Esse arquivo está no `.gitignore` e não deve ser commitado. A chave sai do Google AI Studio (`aistudio.google.com` → Get API key). Se preferir, use a variável de ambiente `GEMINI_API_KEY` em vez do arquivo.
+
+**Streamlit Cloud (app publicado):** abra o app em `share.streamlit.io` → menu `⋮` → **Settings** → **Secrets**, cole o mesmo bloco e clique em **Save**. Se o app não recarregar sozinho, use **Reboot**. O deploy lê a chave desse local, não do repositório — por isso ela nunca vai no Git.
+
 ## Modo demonstração
 
 Na barra lateral, em **Modo demonstração**, dá para:
