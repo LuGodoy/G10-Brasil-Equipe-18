@@ -11,6 +11,7 @@ import copy
 import csv
 import io
 import json
+from datetime import datetime, timezone
 
 from mocks import mock_data as m
 
@@ -152,14 +153,14 @@ def erro_armazenamento():
 
 
 def bucket_atual():
-    """Nome do bucket em uso. Sem credencial, devolve o nome do mock."""
+    """Nome do bucket em uso. Vazio quando nao ha acesso a OCI."""
     armazenamento = _storage()
     if armazenamento is None:
-        return m.BUCKET
+        return ""
     try:
         return armazenamento.nome_bucket()
     except Exception:
-        return m.BUCKET
+        return ""
 
 
 def listar_pacotes():
@@ -193,13 +194,41 @@ def listar_pacotes():
     ]
 
 
-def salvar_no_oci(pacotes, lote_id):
+def salvar_no_oci(pacotes, lote_id, historias=None):
     """Grava os pacotes do lote no bucket.
 
     O caminho e montado pelo backend a partir do lote e do nome do arquivo,
     entao repetir a gravacao sobrescreve em vez de duplicar (idempotente).
     Sem credencial, nada e gravado: o item volta como falha de simulacao.
+    Sem conteudo, nada e gravado: o item volta como falha, para nao salvar
+    um arquivo apenas com metadados.
     """
+    if not isinstance(historias, (list, tuple)) or not historias:
+        return [
+            {
+                **dict(pacote),
+                "status": "falhou",
+                "persistencia": "nenhuma",
+                "motivo": "Sem conteudo para gravar: a analise nao foi informada",
+                "data": None,
+                "tamanho": None,
+            }
+            for pacote in pacotes
+        ]
+
+    conteudo = {
+        "versao_schema": "1.0",
+        "lote": lote_id,
+        "gerado_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "origem_analise": ORIGEM_ANALISE,
+        "historias": historias,
+        "evidencias": [
+            {"id_interacao": c.get("id_interacao"), "texto": c.get("texto")}
+            for h in historias
+            for c in (h.get("citacoes") or [])
+        ],
+    }
+
     armazenamento = _storage()
     if armazenamento is None:
         return [
@@ -218,7 +247,16 @@ def salvar_no_oci(pacotes, lote_id):
     for pacote in pacotes:
         caminho = armazenamento.caminho_do_lote(lote_id, pacote.get("caminho"))
         try:
-            resultado = armazenamento.salvar_objeto(caminho, pacote)
+            if "evidencia" in caminho:
+                dados = {
+                    "versao_schema": "1.0",
+                    "lote": lote_id,
+                    "gerado_em": conteudo["gerado_em"],
+                    "evidencias": conteudo["evidencias"],
+                }
+            else:
+                dados = conteudo
+            resultado = armazenamento.salvar_objeto(caminho, dados)
             novo = dict(pacote)
             novo.update(
                 {
