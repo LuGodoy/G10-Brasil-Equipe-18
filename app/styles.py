@@ -204,12 +204,13 @@ def destacar(texto, trechos):
     return saida
 
 
-def evidencias_citadas(historia, interacoes_do_lote):
+def evidencias_citadas(historia, interacoes_do_lote, modo_demonstracao=True):
     """Componente compartilhado: exibe evidências citadas com conferência literal.
     
-    Ajuste 2: usado no Estúdio e na Curadoria para evitar duplicação de código.
-    Ajuste 3: só alerta "Trecho não encontrado" quando a interação existe e o trecho não está nela.
-    Se a interação não existe no lote, mostra "Conferência indisponível" (neutro).
+    Regra C: NUNCA marca como "Validada" automaticamente quando interação não existe.
+    Regra D: Em modo demonstração, rotula como "Exemplo de demonstração".
+    
+    Retorna: HTML das evidências com conferência literal.
     """
     from services import data_service as svc
     
@@ -217,11 +218,12 @@ def evidencias_citadas(historia, interacoes_do_lote):
     if not citacoes:
         return '<span class="cl-muted">Nenhuma evidência citada registrada.</span>'
     
-    # Mapa de interações por ID para conferência
+    # Mapa de interações por ID efetivo para conferência
     mapa_interacoes = {}
-    for idx, interacao in enumerate(interacoes_do_lote, start=1):
-        id_int = svc.id_interacao(interacao, idx)
-        mapa_interacoes[id_int] = interacao
+    for interacao in interacoes_do_lote:
+        id_efetivo = interacao.get("_id_efetivo")
+        if id_efetivo:
+            mapa_interacoes[id_efetivo] = interacao
     
     html_partes = []
     for citacao in citacoes:
@@ -234,21 +236,31 @@ def evidencias_citadas(historia, interacoes_do_lote):
         else:
             id_display = f'interação nº <b>{id_int}</b>'
         
-        # Conferência literal (ajuste 3)
+        # Conferência literal (Regra C: NUNCA validar automaticamente sem origem)
         selo = ""
+        rotulo_demo = ""
+        
         if id_int > 0 and id_int in mapa_interacoes:
+            # Interação existe: verificar se trecho está no texto
             texto_original = mapa_interacoes[id_int].get("texto", "")
             if trecho in texto_original:
                 selo = f'{chip("Trecho literal conferido", "green")}'
             else:
+                # Trecho NÃO existe: aviso amarelo (não validar)
                 selo = f'{chip("⚠ Trecho não encontrado na mensagem original", "yellow")}'
         elif id_int > 0:
+            # Interação NÃO existe no lote: conferência indisponível (neutro)
+            # Regra C: NUNCA usar selo verde aqui
             selo = f'<span class="cl-muted" style="font-size:11px;">Conferência indisponível</span>'
+        
+        # Regra D: rotular exemplos de demonstração
+        if modo_demonstracao:
+            rotulo_demo = f' {chip("Exemplo de demonstração", "gray")}'
         
         html_partes.append(
             f'<div style="margin:10px 0; padding:10px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">'
             f'<div style="font-size:13px; color:#0F172A; margin-bottom:4px;">"{esc(trecho)}"</div>'
-            f'<div class="cl-muted" style="font-size:12px;">→ {id_display} {selo}</div>'
+            f'<div class="cl-muted" style="font-size:12px;">→ {id_display} {selo}{rotulo_demo}</div>'
             f'</div>'
         )
     
