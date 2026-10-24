@@ -37,6 +37,16 @@ def _enviar_curadoria(hid):
 
 def _coluna_evidencias(h):
     """Coluna esquerda: fatos e evidências originais."""
+    ss = st.session_state
+    from services import data_service as svc
+    
+    # ID da interação (ajuste 1: usa função centralizada)
+    interacoes_origem = h.get("interacoes_origem", [])
+    if interacoes_origem and interacoes_origem[0] > 0:
+        id_display = f'interação nº {interacoes_origem[0]}'
+    else:
+        id_display = "ID não informado"
+    
     with st.container(border=True):
         md('<div style="font-size:18px; font-weight:600; margin-bottom:12px;">Fatos e evidências originais</div>')
         
@@ -44,10 +54,11 @@ def _coluna_evidencias(h):
         md('<b style="font-size:14px;">Mensagem original</b>')
         md(f'<div class="cl-quote" style="margin:8px 0 12px 0;">"{destacar(h["mensagem_original"], h["destaques"])}"</div>')
         
-        # Metadados
+        # Metadados com ID da interação
         md(f'<div class="cl-kv"><span>Canal</span><span>{esc(h["canal"])}</span></div>')
         md(f'<div class="cl-kv"><span>Autor</span><span>{esc(h["autor"])}</span></div>')
-        md(f'<div class="cl-kv"><span>Lote</span><span>{esc(st.session_state.lote_id)}</span></div>')
+        md(f'<div class="cl-kv"><span>Lote</span><span>{esc(ss.lote_id)}</span></div>')
+        md(f'<div class="cl-kv"><span>ID da interação</span><span>{id_display}</span></div>')
         md(chip("Mensagem fictícia"))
         
         st.divider()
@@ -63,6 +74,13 @@ def _coluna_evidencias(h):
                 f'</div>'
             )
         md(fatos_html)
+        
+        st.divider()
+        
+        # Evidências citadas (ajuste 2: componente compartilhado)
+        md('<b style="font-size:14px; margin-top:12px;">Evidências citadas</b>')
+        from styles import evidencias_citadas
+        md(evidencias_citadas(h, ss.interacoes))
 
 
 def _coluna_conteudo(h):

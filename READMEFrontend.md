@@ -103,6 +103,20 @@ Esse arquivo está no `.gitignore` e não deve ser commitado. A chave sai do Goo
 
 **Streamlit Cloud (app publicado):** abra o app em `share.streamlit.io` → menu `⋮` → **Settings** → **Secrets**, cole o mesmo bloco e clique em **Save**. Se o app não recarregar sozinho, use **Reboot**. O deploy lê a chave desse local, não do repositório — por isso ela nunca vai no Git.
 
+## Rastreabilidade de evidências (CATP-007)
+
+Cada evidência citada está vinculada à interação original através do **ID da interação**:
+
+- **ID da interação:** campo `id` do arquivo importado (se inteiro >= 1), senão a posição da interação no lote (começando em 1)
+- **Exibição:** coluna "ID" na prévia de Importação, linha "ID da interação" no Estúdio e na Curadoria
+- **Conferência literal:** seção "Evidências citadas" mostra cada trecho com:
+  - ✅ Selo verde "Trecho literal conferido" se o trecho existe na mensagem original
+  - ⚠️ Selo amarelo "Trecho não encontrado" se a interação existe mas o trecho não está nela
+  - "Conferência indisponível" (neutro) se a interação não existe no lote atual
+- **Função centralizada:** `svc.id_interacao(interacao, posicao_1indexed)` em `data_service.py` (regra idêntica ao llm.py)
+
+O campo `id_interacao` de cada citação nunca é 0 - quando a informação não está disponível, exibe-se "ID não informado".
+
 ## Modo demonstração
 
 Na barra lateral, em **Modo demonstração**, dá para:

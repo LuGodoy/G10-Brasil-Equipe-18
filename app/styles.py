@@ -202,3 +202,54 @@ def destacar(texto, trechos):
     for trecho in trechos:
         saida = saida.replace(esc(trecho), f"<mark>{esc(trecho)}</mark>")
     return saida
+
+
+def evidencias_citadas(historia, interacoes_do_lote):
+    """Componente compartilhado: exibe evidências citadas com conferência literal.
+    
+    Ajuste 2: usado no Estúdio e na Curadoria para evitar duplicação de código.
+    Ajuste 3: só alerta "Trecho não encontrado" quando a interação existe e o trecho não está nela.
+    Se a interação não existe no lote, mostra "Conferência indisponível" (neutro).
+    """
+    from services import data_service as svc
+    
+    citacoes = historia.get("citacoes", [])
+    if not citacoes:
+        return '<span class="cl-muted">Nenhuma evidência citada registrada.</span>'
+    
+    # Mapa de interações por ID para conferência
+    mapa_interacoes = {}
+    for idx, interacao in enumerate(interacoes_do_lote, start=1):
+        id_int = svc.id_interacao(interacao, idx)
+        mapa_interacoes[id_int] = interacao
+    
+    html_partes = []
+    for citacao in citacoes:
+        trecho = citacao.get("texto", "")
+        id_int = citacao.get("id_interacao", 0)
+        
+        # Exibir ID
+        if id_int == 0:
+            id_display = '<span class="cl-muted">ID não informado</span>'
+        else:
+            id_display = f'interação nº <b>{id_int}</b>'
+        
+        # Conferência literal (ajuste 3)
+        selo = ""
+        if id_int > 0 and id_int in mapa_interacoes:
+            texto_original = mapa_interacoes[id_int].get("texto", "")
+            if trecho in texto_original:
+                selo = f'{chip("Trecho literal conferido", "green")}'
+            else:
+                selo = f'{chip("⚠ Trecho não encontrado na mensagem original", "yellow")}'
+        elif id_int > 0:
+            selo = f'<span class="cl-muted" style="font-size:11px;">Conferência indisponível</span>'
+        
+        html_partes.append(
+            f'<div style="margin:10px 0; padding:10px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">'
+            f'<div style="font-size:13px; color:#0F172A; margin-bottom:4px;">"{esc(trecho)}"</div>'
+            f'<div class="cl-muted" style="font-size:12px;">→ {id_display} {selo}</div>'
+            f'</div>'
+        )
+    
+    return "".join(html_partes)

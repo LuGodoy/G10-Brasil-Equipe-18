@@ -229,18 +229,33 @@ def render():
                     caixa("yellow", "⚠ <b>Aprovado, mas autorização não registrada</b><br>Registre a autorização para liberar para publicação.")
             
     with dir_:
+        # ID da interação (ajuste 1: usa função centralizada)
+        from services import data_service as svc
+        interacoes_origem = h.get("interacoes_origem", [])
+        if interacoes_origem and interacoes_origem[0] > 0:
+            id_display = f'interação nº {interacoes_origem[0]}'
+        else:
+            id_display = "ID não informado"
+        
         with st.container(border=True):
             md('<b style="font-size:18px;">Evidências</b><br><b style="font-size:14px;">Mensagem original</b>'
                f'<div class="cl-quote" style="margin:8px 0;">"{destacar(h["mensagem_original"], h["destaques"])}"</div>'
                f'<div class="cl-kv"><span>Canal</span><span>{esc(h["canal"])}</span></div>'
                f'<div class="cl-kv"><span>Autor</span><span>{esc(h["autor"])}</span></div>'
                f'<div class="cl-kv"><span>Lote</span><span>{esc(ss.lote_id)}</span></div>'
+               f'<div class="cl-kv"><span>ID da interação</span><span>{id_display}</span></div>'
                + chip("Mensagem fictícia"))
         with st.container(border=True):
             fatos = "".join(f'<div style="margin:8px 0;"><span style="color:#10B981;">✓</span> {esc(f)}<br>'
                             f'<span class="cl-muted" style="margin-left:18px;font-size:12px;">Vem da mensagem original</span></div>'
                             for f in h["fatos"])
             md(f'<b style="font-size:18px;">Fatos extraídos</b>{fatos}')
+        
+        # Evidências citadas (ajuste 2: componente compartilhado)
+        with st.container(border=True):
+            md('<b style="font-size:18px;">Evidências citadas</b>')
+            from styles import evidencias_citadas
+            md(evidencias_citadas(h, ss.interacoes))
 
     st.divider()
     

@@ -96,12 +96,13 @@ def _colar_json():
 
 def _tabela_html(linhas):
     corpo = "".join(
-        f'<tr><td><b>{esc(i["autor"])}</b></td><td class="mut">{esc(i["canal"])}</td>'
+        f'<tr><td class="mut">{esc(str(svc.id_interacao(i, idx)))}</td>'
+        f'<td><b>{esc(i["autor"])}</b></td><td class="mut">{esc(i["canal"])}</td>'
         f'<td class="mut">{esc(i["tipo"])}</td><td>{esc(i["texto"])}</td></tr>'
-        for i in linhas
+        for idx, i in enumerate(linhas, start=1)
     )
     return (
-        '<table class="cl-table"><thead><tr><th>autor</th><th>canal</th><th>tipo</th><th>texto</th></tr></thead>'
+        '<table class="cl-table"><thead><tr><th>ID</th><th>autor</th><th>canal</th><th>tipo</th><th>texto</th></tr></thead>'
         f"<tbody>{corpo}</tbody></table>"
     )
 
