@@ -463,4 +463,3 @@ def conteudo_pacote(caminho):
     except Exception as erro:
         _registrar_erro_oci(erro)
         return None
-
