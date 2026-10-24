@@ -105,17 +105,77 @@ Esse arquivo está no `.gitignore` e não deve ser commitado. A chave sai do Goo
 
 ## Rastreabilidade de evidências (CATP-007)
 
-Cada evidência citada está vinculada à interação original através do **ID da interação**:
+Cada evidência citada está vinculada à interação original através do **ID da interação**. O front implementa validação rigorosa de IDs para garantir rastreabilidade completa.
 
-- **ID da interação:** campo `id` do arquivo importado (se inteiro >= 1), senão a posição da interação no lote (começando em 1)
-- **Exibição:** coluna "ID" na prévia de Importação, linha "ID da interação" no Estúdio e na Curadoria
-- **Conferência literal:** seção "Evidências citadas" mostra cada trecho com:
-  - ✅ Selo verde "Trecho literal conferido" se o trecho existe na mensagem original
-  - ⚠️ Selo amarelo "Trecho não encontrado" se a interação existe mas o trecho não está nela
-  - "Conferência indisponível" (neutro) se a interação não existe no lote atual
-- **Função centralizada:** `svc.id_interacao(interacao, posicao_1indexed)` em `data_service.py` (regra idêntica ao llm.py)
+### Regras de ID de interação
 
-O campo `id_interacao` de cada citação nunca é 0 - quando a informação não está disponível, exibe-se "ID não informado".
+O ID é calculado **uma única vez antes de qualquer filtro ou validação**, seguindo esta ordem:
+
+1. **ID explícito válido:** campo `id` inteiro >= 1 (booleano NÃO conta como inteiro)
+2. **ID ausente ou inválido:** posição da interação no lote original, começando em 1
+
+#### IDs inválidos
+- Zero (`id: 0`)
+- Negativo (`id: -5`)
+- Texto (`id: "abc"`)
+- Booleano (`id: true` ou `id: false`)
+
+Quando um ID é inválido, o sistema:
+- Usa a posição da interação (começando em 1)
+- Gera um **aviso visível** na tela de Importação listando as interações afetadas
+- **Nunca pode ser silencioso** - o usuário deve saber que IDs foram recalculados
+
+#### IDs duplicados
+
+Se dois ou mais registros têm o mesmo ID efetivo (seja explícito ou por posição), o lote é **rejeitado imediatamente** com mensagem em português detalhando:
+- Quais IDs estão duplicados
+- Quais interações (autor e posição) colidem
+- Isso vale tanto para upload de arquivo quanto para JSON colado
+- Exemplo de colisão: primeiro item com `id: 2` explícito, segundo item sem id (vira posição 2)
+
+#### Preservação após filtros
+
+Os IDs calculados são armazenados em `_id_efetivo` e **nunca mudam após filtros**. Exemplo:
+
+```json
+[
+  {"id": 101, "autor": "Ana", "canal": "#conquistas"},  // ID efetivo: 101
+  {"autor": "Bob", "canal": "#geral"},                   // ID efetivo: 2 (posição)
+  {"id": 309, "autor": "Carlos", "canal": "#conquistas"} // ID efetivo: 309
+]
+```
+
+Após filtrar por `#conquistas`, os IDs continuam 101 e 309 (não viram 1 e 2).
+
+### Conferência literal de evidências
+
+A seção "Evidências citadas" no Estúdio e na Curadoria mostra cada trecho com conferência automática:
+
+- ✅ **Selo verde** "Trecho literal conferido" — o trecho existe palavra por palavra no texto da interação
+- ⚠️ **Selo amarelo** "Trecho não encontrado na mensagem original" — a interação existe no lote mas o trecho não está nela (NUNCA marca como validada)
+- 🔄 **Conferência indisponível** (neutro, sem selo) — a interação com aquele ID não existe no lote atual (exemplo: citação de ID 999 mas o lote só tem IDs 1-10)
+
+**Regra crítica:** o sistema **NUNCA marca automaticamente como validada** quando a interação não existe no lote.
+
+### Modo demonstração
+
+Quando `modo_demonstracao=True` (padrão), as evidências citadas recebem o chip cinza "Exemplo de demonstração" para deixar claro que são dados fictícios.
+
+### Exibição de IDs
+
+- **Importação:** coluna "ID" na prévia das interações
+- **Estúdio e Curadoria:** linha "ID da interação" nos metadados (separada do campo "Lote")
+- **Evidências citadas:** "interação nº N" para cada trecho
+- **ID não informado:** quando `id_interacao` é 0 ou ausente, exibe "ID não informado" em vez de "ID 0"
+
+### Implementação técnica
+
+- **Função centralizada:** `calcular_ids_efetivos(itens)` em `app/services/data_service.py`
+  - Retorna lista de IDs, lista de avisos e mensagem de erro (se houver duplicados)
+  - Valida unicidade **antes** de qualquer outra operação
+  - Campo `_id_efetivo` adicionado a cada interação
+- **Compatibilidade:** mesma regra do `llm.py` linha 220 (campo `id` inteiro >= 1, senão posição)
+- **Testes:** `tests/test_front_ids.py` cobre 9 cenários sem Streamlit e sem rede
 
 ## Modo demonstração
 

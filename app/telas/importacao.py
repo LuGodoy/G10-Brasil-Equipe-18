@@ -96,7 +96,7 @@ def _colar_json():
 
 def _tabela_html(linhas):
     corpo = "".join(
-        f'<tr><td class="mut">{esc(str(svc.id_interacao(i, idx)))}</td>'
+        f'<tr><td class="mut">{esc(str(i.get("_id_efetivo", idx)))}</td>'
         f'<td><b>{esc(i["autor"])}</b></td><td class="mut">{esc(i["canal"])}</td>'
         f'<td class="mut">{esc(i["tipo"])}</td><td>{esc(i["texto"])}</td></tr>'
         for idx, i in enumerate(linhas, start=1)
@@ -114,6 +114,14 @@ def _previa():
     opcoes = [CANAL_TODOS] + canais
     if valor("f:canal", CANAL_TODOS) not in opcoes:
         definir("f:canal", CANAL_TODOS)
+    
+    # Mostrar avisos de IDs inválidos (regra B)
+    avisos = svc.avisos_validacao_ids()
+    if avisos:
+        with st.expander("⚠️ Avisos sobre IDs das interações", expanded=True):
+            for aviso in avisos:
+                st.warning(aviso, icon="⚠️")
+    
     with st.container(border=True):
         esq, dir_ = st.columns([3, 1])
         with esq:

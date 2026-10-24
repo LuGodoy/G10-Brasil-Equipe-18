@@ -17,6 +17,76 @@ from mocks import mock_data as m
 
 CAMPOS_OBRIGATORIOS = ("autor", "canal", "texto")
 
+# Avisos e erros de validação de IDs (preenchidos em parse_interacoes)
+AVISOS_IDS: list[str] = []
+ERRO_IDS_DUPLICADOS: str = ""
+
+
+def calcular_ids_efetivos(itens: list) -> tuple[list[int], list[str], str]:
+    """Calcula IDs efetivos ANTES de qualquer filtro.
+    
+    Retorna: (ids_efetivos, avisos, erro_duplicados)
+    - ids_efetivos: lista de IDs (inteiros >= 1)
+    - avisos: mensagens sobre IDs inválidos que viraram posição
+    - erro_duplicados: mensagem de erro se houver IDs repetidos (bloqueia importação)
+    
+    Regras:
+    - ID explícito (inteiro >= 1): usa ele
+    - ID inválido (0, negativo, texto, booleano, None): usa posição + gera aviso
+    - IDs duplicados (inclusive colisão id explícito vs posição): rejeita o lote
+    """
+    ids_efetivos = []
+    avisos = []
+    vistos = {}  # {id: [(posicao, autor)]}
+    
+    for posicao, item in enumerate(itens, start=1):
+        id_campo = item.get("id")
+        autor = str(item.get("autor", "")).strip()[:30]  # limita para exibição
+        
+        # Valida se o ID é inteiro >= 1
+        id_valido = isinstance(id_campo, int) and id_campo >= 1
+        
+        if not id_valido and id_campo is not None:
+            # ID inválido: gera aviso e usa posição
+            tipo_invalido = type(id_campo).__name__
+            valor_str = str(id_campo) if not isinstance(id_campo, bool) else repr(id_campo)
+            avisos.append(
+                f'Interação {posicao} (autor: {autor}): ID inválido ({tipo_invalido}: {valor_str}). '
+                f'Usando posição {posicao} como ID.'
+            )
+            id_efetivo = posicao
+        elif id_valido:
+            id_efetivo = id_campo
+        else:
+            # ID ausente: usa posição (sem aviso, é o comportamento normal)
+            id_efetivo = posicao
+        
+        # Registra para detecção de duplicados
+        if id_efetivo not in vistos:
+            vistos[id_efetivo] = []
+        vistos[id_efetivo].append((posicao, autor))
+        ids_efetivos.append(id_efetivo)
+    
+    # Detecta duplicados
+    duplicados = {id_: ocorrencias for id_, ocorrencias in vistos.items() if len(ocorrencias) > 1}
+    
+    if duplicados:
+        partes = []
+        for id_, ocorrencias in sorted(duplicados.items()):
+            autores = ", ".join(f'posição {pos} ({autor})' for pos, autor in ocorrencias)
+            partes.append(f'ID {id_}: {autores}')
+        
+        erro = (
+            f'Lote rejeitado: IDs duplicados detectados.\n\n'
+            f'Os seguintes IDs aparecem mais de uma vez:\n' +
+            '\n'.join(f'• {parte}' for parte in partes) +
+            '\n\nCada interação deve ter um ID único. '
+            'Corrija o arquivo e tente novamente.'
+        )
+        return ids_efetivos, avisos, erro
+    
+    return ids_efetivos, avisos, ""
+
 
 def id_interacao(interacao, posicao_1indexed):
     """Devolve o ID da interação: campo 'id' se for inteiro >= 1, senão a posição.
@@ -29,8 +99,22 @@ def id_interacao(interacao, posicao_1indexed):
 
 # ---------- Ingestão ----------
 def _normalizar(itens):
+    global AVISOS_IDS, ERRO_IDS_DUPLICADOS
+    AVISOS_IDS = []
+    ERRO_IDS_DUPLICADOS = ""
+    
     if not isinstance(itens, list) or not itens:
         raise ValueError("O arquivo precisa conter uma lista com pelo menos uma interação.")
+    
+    # Calcula IDs efetivos ANTES de qualquer validação (regra B)
+    ids_efetivos, avisos, erro_duplicados = calcular_ids_efetivos(itens)
+    AVISOS_IDS = avisos
+    ERRO_IDS_DUPLICADOS = erro_duplicados
+    
+    # Se houver IDs duplicados, rejeita o lote inteiro
+    if erro_duplicados:
+        raise ValueError(erro_duplicados)
+    
     saida = []
     for i, item in enumerate(itens, start=1):
         if not isinstance(item, dict):
@@ -44,9 +128,11 @@ def _normalizar(itens):
             "tipo": str(item.get("tipo") or "mensagem").strip(),
             "texto": str(item["texto"]).strip(),
         }
-        # Preserva o campo id se for inteiro >= 1 (parse_interacoes, ajuste 4)
+        # Preserva o campo id se for inteiro >= 1
         if "id" in item and isinstance(item["id"], int) and item["id"] >= 1:
             normalizado["id"] = item["id"]
+        # Adiciona _id_efetivo para uso interno (preservado em filtros)
+        normalizado["_id_efetivo"] = ids_efetivos[i - 1]
         saida.append(normalizado)
     return saida
 
@@ -74,6 +160,11 @@ def parse_interacoes(nome_arquivo, conteudo):
     if nome.endswith(".csv"):
         return _normalizar(list(csv.DictReader(io.StringIO(texto))))
     raise ValueError("Formato não suportado. Envie um arquivo CSV ou JSON.")
+
+
+def avisos_validacao_ids():
+    """Retorna lista de avisos sobre IDs inválidos detectados na última importação."""
+    return AVISOS_IDS.copy()
 
 
 # ---------- Análise ----------
