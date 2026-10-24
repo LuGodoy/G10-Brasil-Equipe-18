@@ -18,6 +18,15 @@ from mocks import mock_data as m
 CAMPOS_OBRIGATORIOS = ("autor", "canal", "texto")
 
 
+def id_interacao(interacao, posicao_1indexed):
+    """Devolve o ID da interação: campo 'id' se for inteiro >= 1, senão a posição.
+    
+    Regra idêntica à do llm.py linha 220, centralizada para uso em todas as telas.
+    """
+    id_lote = interacao.get("id")
+    return id_lote if isinstance(id_lote, int) and id_lote >= 1 else posicao_1indexed
+
+
 # ---------- Ingestão ----------
 def _normalizar(itens):
     if not isinstance(itens, list) or not itens:
@@ -29,12 +38,16 @@ def _normalizar(itens):
         faltando = [c for c in CAMPOS_OBRIGATORIOS if not str(item.get(c, "")).strip()]
         if faltando:
             raise ValueError(f"Interação {i}: faltam os campos {', '.join(faltando)}.")
-        saida.append({
+        normalizado = {
             "autor": str(item["autor"]).strip(),
             "canal": str(item["canal"]).strip(),
             "tipo": str(item.get("tipo") or "mensagem").strip(),
             "texto": str(item["texto"]).strip(),
-        })
+        }
+        # Preserva o campo id se for inteiro >= 1 (parse_interacoes, ajuste 4)
+        if "id" in item and isinstance(item["id"], int) and item["id"] >= 1:
+            normalizado["id"] = item["id"]
+        saida.append(normalizado)
     return saida
 
 
@@ -359,3 +372,4 @@ def conteudo_pacote(caminho):
     except Exception as erro:
         _registrar_erro_oci(erro)
         return None
+

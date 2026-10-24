@@ -11,17 +11,17 @@ ARQUIVO_DEMO = "one_comunidade_demo.json"
 ARQUIVO_DEMO_TAMANHO = "2,4 KB"
 
 INTERACOES = [
-    {"autor": "Marina Costa", "canal": "#conquistas", "tipo": "mensagem",
+    {"id": 1, "autor": "Marina Costa", "canal": "#conquistas", "tipo": "mensagem",
      "texto": "Consegui minha primeira vaga como dev júnior! O portfólio que construí no ONE fez a diferença."},
-    {"autor": "Lucas Almeida", "canal": "#projetos", "tipo": "mensagem",
+    {"id": 2, "autor": "Lucas Almeida", "canal": "#projetos", "tipo": "mensagem",
      "texto": "Nosso projeto de controle financeiro foi destaque no desafio. Fizemos tudo em equipe!"},
-    {"autor": "Camila Santos", "canal": "#carreira", "tipo": "mensagem",
+    {"id": 3, "autor": "Camila Santos", "canal": "#carreira", "tipo": "mensagem",
      "texto": "Depois de 10 anos no varejo, concluí a formação e comecei minha transição para tecnologia."},
-    {"autor": "Rafael Lima", "canal": "#geral", "tipo": "mensagem",
+    {"id": 4, "autor": "Rafael Lima", "canal": "#geral", "tipo": "mensagem",
      "texto": "Alguém sabe qual é o horário da próxima mentoria?"},
-    {"autor": "Beatriz Nunes", "canal": "#geral", "tipo": "mensagem",
+    {"id": 5, "autor": "Beatriz Nunes", "canal": "#geral", "tipo": "mensagem",
      "texto": "Bom dia, pessoal! Começando a semana com bastante energia."},
-    {"autor": "Pedro Alves", "canal": "#projetos", "tipo": "mensagem",
+    {"id": 6, "autor": "Pedro Alves", "canal": "#projetos", "tipo": "mensagem",
      "texto": "Alguém tem um exemplo de como organizar as pastas do projeto?"},
 ]
 
@@ -37,6 +37,11 @@ HISTORIAS = [
         "sentimento": "Positivo",
         "relevancia": 96,
         "mensagem_original": "Consegui minha primeira vaga como dev júnior! O portfólio que construí no ONE fez a diferença.",
+        "citacoes": [
+            {"texto": "primeira vaga como dev júnior!", "id_interacao": 1},
+            {"texto": "O portfólio que construí no ONE fez a diferença.", "id_interacao": 1}
+        ],
+        "interacoes_origem": [1],
         "destaques": ["primeira vaga como dev júnior!", "O portfólio que construí no ONE fez a diferença."],
         "fatos": ["Conquista: primeira vaga como dev júnior", "Origem: portfólio construído no ONE"],
         "ativos": [
@@ -83,6 +88,11 @@ HISTORIAS = [
         "sentimento": "Positivo",
         "relevancia": 89,
         "mensagem_original": "Nosso projeto de controle financeiro foi destaque no desafio. Fizemos tudo em equipe!",
+        "citacoes": [
+            {"texto": "projeto de controle financeiro foi destaque no desafio.", "id_interacao": 2},
+            {"texto": "Fizemos tudo em equipe!", "id_interacao": 2}
+        ],
+        "interacoes_origem": [2],
         "destaques": ["projeto de controle financeiro foi destaque no desafio.", "Fizemos tudo em equipe!"],
         "fatos": ["Projeto: controle financeiro", "Reconhecimento: destaque no desafio", "Trabalho em equipe"],
         "ativos": [
@@ -129,6 +139,12 @@ HISTORIAS = [
         "sentimento": "Positivo",
         "relevancia": 84,
         "mensagem_original": "Depois de 10 anos no varejo, concluí a formação e comecei minha transição para tecnologia.",
+        "citacoes": [
+            {"texto": "Depois de 10 anos no varejo,", "id_interacao": 3},
+            {"texto": "concluí a formação", "id_interacao": 3},
+            {"texto": "comecei minha transição para tecnologia.", "id_interacao": 3}
+        ],
+        "interacoes_origem": [3],
         "destaques": ["Depois de 10 anos no varejo,", "concluí a formação", "comecei minha transição para tecnologia."],
         "fatos": ["Trajetória: 10 anos no varejo", "Marco: formação concluída", "Mudança: início da transição para tecnologia"],
         "ativos": [
