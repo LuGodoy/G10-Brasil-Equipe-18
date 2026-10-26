@@ -1,4 +1,4 @@
-# CommunityLab · Front-end (Streamlit)
+# CommunityLab · Front-end (Streamlit) 
 
 Interface do CommunityLab, feita em Streamlit. Por enquanto ela funciona sozinha, com **dados fictícios**, para o time poder ver e validar o fluxo antes de o back ficar pronto.
 
