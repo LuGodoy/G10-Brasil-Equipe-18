@@ -35,7 +35,7 @@ import unicodedata
 
 import requests
 
-MODELO_PADRAO = "gemini-3.8-flash"
+MODELO_PADRAO = "gemini-3.5-flash-lite"
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
 
 # Quantidade maxima de historias por lote analisado.
