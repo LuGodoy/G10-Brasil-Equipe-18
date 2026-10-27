@@ -1,4 +1,4 @@
-# CommunityLab · Front-end (Streamlit)
+# CommunityLab · Front-end (Streamlit) 
 
 Interface do CommunityLab, feita em Streamlit. Por enquanto ela funciona sozinha, com **dados fictícios**, para o time poder ver e validar o fluxo antes de o back ficar pronto.
 
@@ -10,16 +10,16 @@ O CommunityLab usa um estilo híbrido **SaaS corporativo + IA**, com visual limp
 
 ### Paleta de cores
 
-| Cor | Código | Uso |
-|---|---|---|
-| **Azul-marinho** | `#101B32` | Sidebar e navegação |
-| **Violeta** | `#7C3AED` | Cor primária, ações de IA e destaques |
-| **Ciano** | `#22D3EE` | Detalhes tecnológicos (SOMENTE sobre fundo escuro) |
-| **Branco-neutro** | `#F8FAFC` | Fundo da área de trabalho |
-| **Verde** | `#10B981` (fundos) / `#047857` (textos) | Sucesso e aprovação |
-| **Texto principal** | `#0F172A` | Títulos e conteúdo principal |
-| **Texto secundário** | `#64748B` | Labels, legendas e informações auxiliares |
-| **Borda suave** | `#E2E8F0` | Bordas de cards e divisores |
+| Cor                  | Código                                  | Uso                                                |
+| -------------------- | --------------------------------------- | -------------------------------------------------- |
+| **Azul-marinho**     | `#101B32`                               | Sidebar e navegação                                |
+| **Violeta**          | `#7C3AED`                               | Cor primária, ações de IA e destaques              |
+| **Ciano**            | `#22D3EE`                               | Detalhes tecnológicos (SOMENTE sobre fundo escuro) |
+| **Branco-neutro**    | `#F8FAFC`                               | Fundo da área de trabalho                          |
+| **Verde**            | `#10B981` (fundos) / `#047857` (textos) | Sucesso e aprovação                                |
+| **Texto principal**  | `#0F172A`                               | Títulos e conteúdo principal                       |
+| **Texto secundário** | `#64748B`                               | Labels, legendas e informações auxiliares          |
+| **Borda suave**      | `#E2E8F0`                               | Bordas de cards e divisores                        |
 
 ### Regras de contraste
 
@@ -45,14 +45,14 @@ O CommunityLab usa um estilo híbrido **SaaS corporativo + IA**, com visual limp
 
 O fluxo tem 6 módulos, organizados no menu lateral:
 
-| Módulo | O que acontece |
-|---|---|
-| **Dashboard** | Visão geral com KPIs (interações, histórias, ativos gerados) e ações rápidas para navegar |
-| **Importação** | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal. Botão "Importar interações" dá início ao processamento |
-| **Histórias** | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima. Botão "Ver no Estúdio" para cada história |
-| **Estúdio de Conteúdo** | Visualização lado a lado de evidências e rascunhos. Coluna esquerda: mensagem original com destaques, fatos extraídos. Coluna direita: conteúdo editável (Testemunho estruturado ou Case de sucesso), contador de caracteres, seção "Fontes deste conteúdo" com rastreabilidade, botões Regenerar, Copiar e Enviar para curadoria |
-| **Curadoria** | Revisa os rascunhos com três controles independentes: (1) Validação factual (Pendente, Validada, Evidências insuficientes, Contradição não resolvida), (2) Curadoria editorial (Rascunho, Ajustes solicitados, Aprovado, Rejeitado), (3) Autorização de publicação (Não registrada, Registrada). A autorização NÃO bloqueia a aprovação editorial. Regra RG-02: com "Contradição não resolvida", o botão Aprovar fica desabilitado. Regra RG-03: "Liberado para publicação" aparece apenas quando Validada + Aprovado + Registrada. O sistema nunca publica automaticamente |
-| **Histórico** | Lista os pacotes salvos no bucket OCI, com visualização do JSON e download |
+| Módulo                  | O que acontece                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard**           | Visão geral com KPIs (interações, histórias, ativos gerados) e ações rápidas para navegar                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Importação**          | Upload de CSV/JSON ou JSON colado, com prévia das interações e filtro por canal. Botão "Importar interações" dá início ao processamento                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Histórias**           | Lista as histórias detectadas com categoria, relevância e trecho original. Filtros por categoria e relevância mínima. Botão "Ver no Estúdio" para cada história                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **Estúdio de Conteúdo** | Visualização lado a lado de evidências e rascunhos. Coluna esquerda: mensagem original com destaques, fatos extraídos. Coluna direita: conteúdo editável (Testemunho estruturado ou Case de sucesso), contador de caracteres, seção "Fontes deste conteúdo" com rastreabilidade, botões Regenerar, Copiar e Enviar para curadoria                                                                                                                                                                                                                                           |
+| **Curadoria**           | Revisa os rascunhos com três controles independentes: (1) Validação factual (Pendente, Validada, Evidências insuficientes, Contradição não resolvida), (2) Curadoria editorial (Rascunho, Ajustes solicitados, Aprovado, Rejeitado), (3) Autorização de publicação (Não registrada, Registrada). A autorização NÃO bloqueia a aprovação editorial. Regra RG-02: com "Contradição não resolvida", o botão Aprovar fica desabilitado. Regra RG-03: "Liberado para publicação" aparece apenas quando Validada + Aprovado + Registrada. O sistema nunca publica automaticamente |
+| **Histórico**           | Lista os pacotes salvos no bucket OCI, com visualização do JSON e download                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 **Fluxo de trabalho:**
 1. **Importar** → carregar interações da comunidade
@@ -96,7 +96,7 @@ A análise de interações usa o Gemini quando existe uma chave configurada. Sem
 
 ```toml
 GEMINI_API_KEY = "sua-chave-aqui"
-# opcional: GEMINI_MODEL = "gemini-3.6-flash"
+# opcional: GEMINI_MODEL = "gemini-3.5-flash-lite"
 ```
 
 Esse arquivo está no `.gitignore` e não deve ser commitado. A chave sai do Google AI Studio (`aistudio.google.com` → Get API key). Se preferir, use a variável de ambiente `GEMINI_API_KEY` em vez do arquivo.
@@ -217,14 +217,14 @@ As telas **não** importam o back diretamente. Elas só chamam funções do arqu
 
 Procure por `TODO(back)` no arquivo para achar os pontos de integração:
 
-| Função | O que o back precisa fazer |
-|---|---|
-| `analisar(interacoes)` | Receber as interações e devolver as histórias detectadas com os ativos gerados |
-| `regenerar(historia, ativo_id, vez)` | Gerar um novo rascunho para um ativo |
-| `listar_pacotes()` | Listar os objetos do bucket no OCI Object Storage |
-| `salvar_no_oci(pacotes, lote_id)` | Gravar o pacote no OCI. **Precisa ser idempotente**: tentar de novo não pode duplicar resultados |
-| `reenviar_pacote(pacote)` | Tentar gravar de novo um pacote que falhou |
-| `conteudo_pacote(caminho)` | Ler o JSON de um objeto do bucket |
+| Função                               | O que o back precisa fazer                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `analisar(interacoes)`               | Receber as interações e devolver as histórias detectadas com os ativos gerados                   |
+| `regenerar(historia, ativo_id, vez)` | Gerar um novo rascunho para um ativo                                                             |
+| `listar_pacotes()`                   | Listar os objetos do bucket no OCI Object Storage                                                |
+| `salvar_no_oci(pacotes, lote_id)`    | Gravar o pacote no OCI. **Precisa ser idempotente**: tentar de novo não pode duplicar resultados |
+| `reenviar_pacote(pacote)`            | Tentar gravar de novo um pacote que falhou                                                       |
+| `conteudo_pacote(caminho)`           | Ler o JSON de um objeto do bucket                                                                |
 
 ### Armazenamento no OCI (implementado)
 
