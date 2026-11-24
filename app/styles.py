@@ -100,6 +100,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
 .chip-yellow {background:#FFF3D6; color:#92400E;}
 .chip-red {background:#FEE2E2; color:#991B1B;}
 .chip-purple {background:#F3E8FF; color:#7C3AED;}
+.chip-blue {background:#DBEAFE; color:#1E40AF;}
 
 .avatar {display:inline-flex; width:36px; height:36px; border-radius:50%; background:#E2E8F0; color:#475569; align-items:center; justify-content:center; font-size:12px; font-weight:600; margin-right:10px; vertical-align:middle;}
 
@@ -169,8 +170,41 @@ def esc(texto):
     return _html.escape(str(texto))
 
 
+def plural(n, singular, plural_):
+    """Ex.: plural(1, "canal", "canais") -> "1 canal"."""
+    return f"{n} {singular if n == 1 else plural_}"
+
+
 def chip(texto, tom="gray"):
     return f'<span class="chip chip-{tom}">{esc(texto)}</span>'
+
+
+# Provedores de LLM que podem responder a análise (ResultadoLLM.provedor) e o
+# nome que a interface mostra. É o único lugar com essa lista.
+PROVEDORES_NOMES = {"gemini": "Gemini", "cohere": "Cohere", "groq": "Groq"}
+
+
+def nome_provedor(origem):
+    """Nome do provedor para exibir. Origem desconhecida volta capitalizada; vazia, vazio."""
+    origem = origem or ""
+    return PROVEDORES_NOMES.get(origem, origem.title())
+
+
+def rotulo_natureza(valor):
+    """(texto, tom) do selo da natureza DECLARADA dos dados do lote.
+
+    Só reflete o que a pessoa declarou na Importação: nunca deduz por autor,
+    conteúdo, origem ou provedor. Valor ausente ou inválido vira "não informada".
+    Nenhum valor usa verde, para o selo não parecer validação.
+    """
+    from services import data_service as svc
+
+    natureza = svc.normalizar_natureza_dados(valor)
+    if natureza == "ficticios":
+        return "Dados fictícios (declarado)", "yellow"
+    if natureza == "reais":
+        return "Dados reais (declarado)", "blue"
+    return "Natureza não informada", "gray"
 
 
 def avatar(iniciais):
@@ -204,64 +238,86 @@ def destacar(texto, trechos):
     return saida
 
 
-def evidencias_citadas(historia, interacoes_do_lote, modo_demonstracao=True):
-    """Componente compartilhado: exibe evidências citadas com conferência literal.
-    
-    Regra C: NUNCA marca como "Validada" automaticamente quando interação não existe.
-    Regra D: Em modo demonstração, rotula como "Exemplo de demonstração".
-    
-    Retorna: HTML das evidências com conferência literal.
+def conferencia_html(confere, motivo):
+    """Resultado da conferência de UMA citação: rótulo + motivo, em HTML.
+
+    confere: True, False ou None (não deu para conferir). Os dois True têm
+    rótulo e cor diferentes. O azul avisa que a parte mascarada não é
+    conferida, para não parecer aprovação. None nunca fica verde.
     """
     from services import data_service as svc
-    
+
+    if confere is None:
+        return f'<span class="cl-muted" style="font-size:12px;">{esc(motivo)}</span>'
+    if confere and motivo == svc.MOTIVO_LITERAL:
+        return chip("Trecho literal conferido", "green")
+    if confere:
+        return chip("Compatível com anonimização · a parte mascarada não é conferida", "blue")
+    return (
+        f'{chip("⚠ Não confere", "yellow")}'
+        f'<span class="cl-muted" style="font-size:12px;">{esc(motivo)}</span>'
+    )
+
+
+def conferencia_da_citacao_editada(texto, historia, interacoes):
+    """Resultado logo abaixo do campo "Citação" editável (Estúdio e Curadoria).
+
+    Recalculado a cada rerun, portanto a cada edição. Texto vazio não mostra nada.
+    """
+    from services import data_service as svc
+
+    if not (texto or "").strip():
+        return
+    confere, motivo, id_int = svc.conferencia_da_citacao_do_ativo(texto, historia, interacoes)
+    origem = f"interação nº {id_int}" if id_int else ""
+    md(
+        f'<div class="cl-muted" style="font-size:12px; margin:-8px 0 8px 0;">'
+        f'Conferência da citação {("(" + origem + ") ") if origem else ""}→ '
+        f'{conferencia_html(confere, motivo)}</div>'
+    )
+
+
+def evidencias_citadas(historia, interacoes_do_lote, modo_demonstracao=True):
+    """Componente compartilhado: exibe evidências citadas com conferência por citação.
+
+    Cada citação é conferida contra o texto da interação do seu id_interacao
+    (services.data_service.conferencia_da_citacao).
+    Regra C: NUNCA fica verde sem interação de origem.
+    Regra D: Em modo demonstração, rotula como "Exemplo de demonstração".
+
+    Retorna: HTML das evidências.
+    """
+    from services import data_service as svc
+
     citacoes = historia.get("citacoes", [])
     if not citacoes:
         return '<span class="cl-muted">Nenhuma evidência citada registrada.</span>'
-    
-    # Mapa de interações por ID efetivo para conferência
-    mapa_interacoes = {}
-    for interacao in interacoes_do_lote:
-        id_efetivo = interacao.get("_id_efetivo")
-        if id_efetivo:
-            mapa_interacoes[id_efetivo] = interacao
-    
+
     html_partes = []
+    if not interacoes_do_lote:
+        # Lote reaberto do Histórico: o pacote não guarda a mensagem original.
+        html_partes.append(
+            '<div class="cl-muted" style="font-size:12px;">Conferência indisponível: '
+            'a mensagem original não é guardada no pacote.</div>'
+        )
     for citacao in citacoes:
         trecho = citacao.get("texto", "")
-        id_int = citacao.get("id_interacao", 0)
-        
-        # Exibir ID
-        if id_int == 0:
-            id_display = '<span class="cl-muted">ID não informado</span>'
-        else:
+        confere, motivo, id_int = svc.conferencia_da_citacao(citacao, interacoes_do_lote)
+
+        if id_int:
             id_display = f'interação nº <b>{id_int}</b>'
-        
-        # Conferência literal (Regra C: NUNCA validar automaticamente sem origem)
-        selo = ""
-        rotulo_demo = ""
-        
-        if id_int > 0 and id_int in mapa_interacoes:
-            # Interação existe: verificar se trecho está no texto
-            texto_original = mapa_interacoes[id_int].get("texto", "")
-            if trecho in texto_original:
-                selo = f'{chip("Trecho literal conferido", "green")}'
-            else:
-                # Trecho NÃO existe: aviso amarelo (não validar)
-                selo = f'{chip("⚠ Trecho não encontrado na mensagem original", "yellow")}'
-        elif id_int > 0:
-            # Interação NÃO existe no lote: conferência indisponível (neutro)
-            # Regra C: NUNCA usar selo verde aqui
-            selo = f'<span class="cl-muted" style="font-size:11px;">Conferência indisponível</span>'
-        
-        # Regra D: rotular exemplos de demonstração
-        if modo_demonstracao:
-            rotulo_demo = f' {chip("Exemplo de demonstração", "gray")}'
-        
+        else:
+            id_display = '<span class="cl-muted">ID não informado</span>'
+        # Sem ID, o motivo "ID não informado" já está no id_display.
+        selo = "" if (confere is None and not id_int) else conferencia_html(confere, motivo)
+
+        rotulo_demo = f' {chip("Exemplo de demonstração", "gray")}' if modo_demonstracao else ""
+
         html_partes.append(
             f'<div style="margin:10px 0; padding:10px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">'
             f'<div style="font-size:13px; color:#0F172A; margin-bottom:4px;">"{esc(trecho)}"</div>'
             f'<div class="cl-muted" style="font-size:12px;">→ {id_display} {selo}{rotulo_demo}</div>'
             f'</div>'
         )
-    
+
     return "".join(html_partes)

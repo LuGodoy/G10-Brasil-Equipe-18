@@ -1,7 +1,7 @@
 import streamlit as st
 
-from state import CATEGORIA_TODAS, campo, definir, ir_para, resumo_ativos
-from styles import avatar, caixa, cabecalho, chip, esc, md, topbar
+from state import CATEGORIA_TODAS, campo, contagem_ativos_completa, definir, estado_editorial, ir_para, legenda_ativos, resumo_ativos, valor
+from styles import PROVEDORES_NOMES, avatar, caixa, cabecalho, chip, esc, md, nome_provedor, plural, rotulo_natureza, topbar
 
 
 def _kpi(coluna, rotulo, numero, legenda):
@@ -25,8 +25,11 @@ def _revisar(hid):
 
 def _status_da_historia(h):
     ss = st.session_state
-    estados = [ss.status_ativos.get(f"{h['id']}:{a['id']}", "rascunho") for a in h["ativos"]]
-    if "rascunho" in estados:
+    estados = [estado_editorial(f"{h['id']}:{a['id']}", ss.status_curadoria, ss.status_ativos) for a in h["ativos"]]
+    if not estados:
+        # all([]) é verdadeiro: sem este caso, a falta de ativos viraria "Rejeitado".
+        return chip("Sem ativos gerados", "gray")
+    if any(e in ("rascunho", "ajustes") for e in estados):
         return chip("Revisão humana pendente", "yellow")
     if all(e == "rejeitado" for e in estados):
         return chip("Rejeitado", "red")
@@ -45,29 +48,28 @@ def render():
         st.button("→ Ir para Importação", type="primary", on_click=ir_para, args=("importacao",))
         return
 
-    contagem = resumo_ativos()
-    total_ativos = sum(contagem.values())
+    contagem = contagem_ativos_completa(historias, ss.status_curadoria, ss.status_ativos)
+    total_ativos = contagem["total"]
     categorias = sorted({h["categoria"] for h in historias})
 
     c1, c2, c3 = st.columns(3)
-    _kpi(c1, "Interações analisadas", len(ss.interacoes), f"{len({i['canal'] for i in ss.interacoes})} canais no lote {ss.lote_id}")
+    n_canais = len({i['canal'] for i in ss.interacoes})
+    if ss.interacoes:
+        _kpi(c1, "Interações analisadas", len(ss.interacoes), f"{plural(n_canais, 'canal', 'canais')} no lote {ss.lote_id}")
+    else:  # lote reaberto do Histórico: o pacote não guarda as interações
+        _kpi(c1, "Interações analisadas", "—", f"Não guardadas no pacote · lote {ss.lote_id}")
     _kpi(c2, "Histórias detectadas", len(historias), f"{len(categorias)} categorias identificadas")
-    _kpi(c3, "Ativos gerados", total_ativos, f"{contagem['rascunho']} rascunhos aguardando revisão humana")
+    _kpi(c3, "Ativos gerados", total_ativos, legenda_ativos(contagem))
 
     origem_analise = ss.get("proc_origem_analise", "")
     
-    provedores_nomes = {
-        "gemini": "Gemini",
-        "cohere": "Cohere",
-        "groq": "Groq",
-    }
-    provedor_nome = provedores_nomes.get(origem_analise, origem_analise.title() if origem_analise else "")
+    provedor_nome = nome_provedor(origem_analise)
 
     if origem_analise == "mock":
         caixa("yellow", "⚠️ <b>Resultado simulado, a análise real falhou</b><br>"
                         "As histórias e rascunhos abaixo foram gerados a partir do fallback mock "
                         "porque a análise real não estava disponível ou falhou.")
-    elif origem_analise in provedores_nomes:
+    elif origem_analise in PROVEDORES_NOMES:
         caixa("green", f"✓ <b>Análise real concluída</b><br>"
                        f"As histórias e rascunhos abaixo foram identificados e gerados pela IA ({provedor_nome}). "
                        "A decisão final de publicação é sempre do seu time.")
@@ -102,20 +104,10 @@ def render():
             with rel_col:
                 md(f'<div style="text-align:right;"><span class="cl-muted">Relevância</span> '
                    f'<span style="font-size:22px;">{h["relevancia"]}</span> <span class="cl-muted">/ 100</span></div>')
-            # TODO(Jaqueline): Quando o backend fornecer campo de origem individual por história (ex.: h.get("origem_analise")), usar o valor individual.
-            origem_lote = ss.get("proc_origem_analise", "")
-            if origem_lote == "gemini":
-                selo_origem = chip("Origem: Real", "green")
-            elif origem_lote == "mock":
-                selo_origem = chip("Origem: Simulada", "yellow")
-            else:
-                selo_origem = ""
-            chips = chip(h["categoria"]) + chip(f'Sentimento {h["sentimento"].lower()}', "green")
-            if selo_origem:
-                chips += selo_origem
-            md(chips)
-            msg_ficticia = " · mensagem fictícia" if origem_lote == "mock" else ""
-            md(f'<div class="cl-quote"><small>Trecho original{msg_ficticia}</small>"{esc(h["mensagem_original"])}"</div>')
+            # O selo mostra só a natureza declarada na Importação (nunca deduzida).
+            texto_selo, tom_selo = rotulo_natureza(valor("natureza_dados", "nao_informado"))
+            md(chip(h["categoria"]) + chip(f'Sentimento {h["sentimento"].lower()}', "green") + chip(texto_selo, tom_selo))
+            md(f'<div class="cl-quote"><small>Trecho original</small>"{esc(h["mensagem_original"])}"</div>')
             rodape, botao = st.columns([4, 1])
             with rodape:
                 md(f'<b>{len(h["ativos"])} ativos gerados</b> &nbsp;{_status_da_historia(h)}<br>'
@@ -124,6 +116,6 @@ def render():
                 st.button("→ Ver no Estúdio", key=f"rev_{h['id']}", on_click=_revisar, args=(h["id"],))
 
     aprov = contagem["aprovado"]
-    texto = "Nenhum ativo aprovado ou publicado" if aprov == 0 else f"{aprov} ativo(s) aprovado(s) · nenhum publicado"
+    texto = "Nenhum ativo aprovado ou publicado" if aprov == 0 else f"{plural(aprov, 'ativo aprovado', 'ativos aprovados')} · nenhum publicado"
     md(f'<div style="display:flex;justify-content:space-between;margin-top:6px;" class="cl-muted">'
        f'<span>Exibindo {len(filtradas)} de {len(historias)} histórias</span><span>{texto}</span></div>')

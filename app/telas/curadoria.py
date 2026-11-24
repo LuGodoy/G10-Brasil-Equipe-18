@@ -3,7 +3,7 @@ import streamlit as st
 
 from services import data_service as svc
 from state import campo, definir, historia_por_id, ir_para, valor
-from styles import avatar, cabecalho, caixa, chip, destacar, esc, md, topbar
+from styles import avatar, cabecalho, caixa, chip, conferencia_da_citacao_editada, destacar, esc, md, topbar
 
 try:  # st.dialog existe a partir da 1.37; antes era experimental
     _dialogo = st.dialog
@@ -15,11 +15,77 @@ def _chave(hid, aid, nome_campo):
     return f"c:{hid}:{aid}:{nome_campo}"
 
 
+def _pacote_principal():
+    """Pacote do lote no bucket (o que carrega as histórias, não a evidência)."""
+    ss = st.session_state
+    for pacote in ss.get("pacotes_oci") or []:
+        caminho = str(pacote.get("caminho") or "")
+        if caminho and "evidencia" not in caminho:
+            return pacote
+    return None
+
+
+def _persistir():
+    """Grava as decisões no pacote do lote.
+
+    Falha não apaga a decisão: ela segue na sessão e a tela mostra o erro, em
+    vez de dar a gravação como feita.
+    """
+    ss = st.session_state
+    pacote = _pacote_principal()
+    if pacote is None or not ss.get("historias"):
+        return
+    resultado = svc.salvar_decisoes(
+        ss.lote_id,
+        pacote["caminho"],
+        ss.historias,
+        {
+            "status_curadoria": ss.status_curadoria,
+            "validacao_factual": ss.validacao_factual,
+            "autorizacao": ss.autorizacao,
+            "observacoes": ss.observacoes,
+            "motivos": ss.motivos,
+        },
+        edicoes=dict(ss.get("dados") or {}),
+    )
+    if resultado.get("ok"):
+        ss.erro_curadoria = ""
+    else:
+        ss.erro_curadoria = (
+            "Decisão registrada nesta sessão, mas não gravada no bucket: "
+            f"{resultado.get('motivo') or 'motivo não informado'}"
+        )
+
+
+def _hidratar_decisoes():
+    """Traz de volta as decisões gravadas no pacote, quando a sessão está vazia."""
+    ss = st.session_state
+    if ss.get("status_curadoria") or ss.get("validacao_factual") or ss.get("autorizacao"):
+        return
+    pacote = _pacote_principal()
+    if pacote is None:
+        return
+    decisoes = svc.ler_decisoes(pacote["caminho"])
+    for chave, decisao in decisoes.items():
+        ss.validacao_factual[chave] = decisao["validacao_factual"]
+        status = decisao["status_curadoria"]
+        ss.status_curadoria[chave] = status
+        ss.autorizacao[chave] = decisao["autorizacao"]
+        # O parecer volta para o campo do status gravado. Sem isso, uma
+        # rejeição reaberta vira observação de ajuste e o defeito reaparece.
+        campo = svc.campo_do_parecer(status)
+        if decisao["parecer"] and campo == "observacoes":
+            ss.observacoes[chave] = decisao["parecer"]
+        elif decisao["parecer"] and campo == "motivos":
+            ss.motivos[chave] = decisao["parecer"]
+
+
 def _aprovar(hid, aid):
     ss = st.session_state
     chave = f"{hid}:{aid}"
     ss.status_curadoria[chave] = "aprovado"
     ss.status_ativos[chave] = "aprovado"  # legado
+    _persistir()
     ss.toast = "Rascunho aprovado. Nenhum conteúdo foi publicado."
 
 
@@ -28,6 +94,7 @@ def _solicitar_ajustes(hid, aid, obs):
     chave = f"{hid}:{aid}"
     ss.status_curadoria[chave] = "ajustes"
     ss.observacoes[chave] = obs
+    _persistir()
     ss.toast = "Ajustes solicitados. Revise novamente após correções."
 
 
@@ -40,6 +107,7 @@ def _desfazer(hid, aid):
     ss.autorizacao[chave] = "nao_registrada"
     ss.motivos.pop(chave, None)
     ss.observacoes.pop(chave, None)
+    _persistir()
     ss.toast = "Decisão desfeita. O ativo voltou para rascunho."
 
 
@@ -57,6 +125,7 @@ def _dialogo_rejeitar(hid, aid, nome_ativo, autor):
         ss.status_curadoria[chave] = "rejeitado"
         ss.status_ativos[chave] = "rejeitado"  # legado
         ss.motivos[chave] = motivo.strip()
+        _persistir()
         ss.toast = "Rascunho rejeitado."
         st.rerun()
 
@@ -108,6 +177,8 @@ def _coluna_rascunhos(h, ativo, status):
     hid, aid = h["id"], ativo["id"]
     editavel = status in ["rascunho", "ajustes"]
     if ativo["tipo"] == "texto":
+        if ativo.get("titulo"):
+            st.caption(ativo["titulo"])
         campo(st.text_area, "Texto do case" if "Case" in ativo["nome"] else "Texto",
               _chave(hid, aid, "texto"), ativo["campos"]["texto"], height=240, disabled=not editavel)
         texto_atual = valor(_chave(hid, aid, "texto"), "")
@@ -117,6 +188,7 @@ def _coluna_rascunhos(h, ativo, status):
         campo(st.text_input, "Título", _chave(hid, aid, "titulo"), ativo["campos"]["titulo"], disabled=not editavel)
         campo(st.text_area, "Descrição", _chave(hid, aid, "descricao"), ativo["campos"]["descricao"], height=100, disabled=not editavel)
         campo(st.text_area, "Citação", _chave(hid, aid, "citacao"), ativo["campos"]["citacao"], height=60, disabled=not editavel)
+        conferencia_da_citacao_editada(valor(_chave(hid, aid, "citacao"), ""), h, st.session_state.interacoes)
         total = len(valor(_chave(hid, aid, "titulo"), "")) + len(valor(_chave(hid, aid, "descricao"), "")) + len(valor(_chave(hid, aid, "citacao"), ""))
         st.caption(f"{total} caracteres no total")
         copiavel = f"{valor(_chave(hid, aid, 'titulo'), '')}\n\n{valor(_chave(hid, aid, 'descricao'), '')}\n\n\"{valor(_chave(hid, aid, 'citacao'), '')}\""
@@ -144,10 +216,16 @@ def render():
         st.button("→ Ir para Importação", type="primary", on_click=ir_para, args=("importacao",))
         return
 
+    _hidratar_decisoes()
     hid = ss.historia_atual or ss.historias[0]["id"]
     h = historia_por_id(hid)
     topbar()
     cabecalho("Etapa 4 de 4 · Decidir", "Curadoria", "Revise, valide e decida sobre cada rascunho antes de qualquer publicação.")
+    aviso_reabertura = ss.pop("aviso_reabertura", "")
+    if aviso_reabertura:
+        caixa("yellow", f"<b>Lote reaberto</b><br>{esc(aviso_reabertura)}")
+    if ss.get("erro_curadoria"):
+        caixa("red", f"<b>Decisão não gravada no bucket</b><br>{esc(ss.erro_curadoria)}")
     st.button("← Voltar para histórias", on_click=ir_para, args=("historias",))
 
     with st.container(border=True):
@@ -157,6 +235,14 @@ def render():
         c.markdown(f'<div style="text-align:right;"><span class="cl-muted">Relevância</span> '
                    f'<span style="font-size:22px;">{h["relevancia"]}</span> <span class="cl-muted">/ 100</span></div>',
                    unsafe_allow_html=True)
+
+    if h.get("testemunho_pendente"):
+        st.warning("Testemunho pendente: " + h["testemunho_pendente"])
+    if h.get("case_pendente"):
+        st.warning("Case pendente: " + h["case_pendente"])
+    if not h["ativos"]:
+        st.info("História preservada para revisão; nenhum ativo elegível disponível.")
+        return
 
     esq, dir_ = st.columns([2, 1])
     nomes = [a_["nome"] for a_ in h["ativos"]]
@@ -194,6 +280,7 @@ def render():
                                          disabled=status_cur not in ["rascunho", "ajustes"])
             if map_validacao[nova_validacao] != validacao:
                 ss.validacao_factual[chave] = map_validacao[nova_validacao]
+                _persistir()
                 st.rerun()
             
             if validacao == "contradicao":
@@ -228,6 +315,7 @@ def render():
                                     disabled=status_cur not in ["rascunho", "ajustes"])
             if autorizado != (autorizacao == "registrada"):
                 ss.autorizacao[chave] = "registrada" if autorizado else "nao_registrada"
+                _persistir()
                 st.rerun()
             
             # Indicador "Liberado para publicação" (RG-03)

@@ -44,6 +44,7 @@ def resetar_lote(ss=None):
     ss.proc_origem_analise = ""    # "gemini" | "mock" | ""
     ss.proc_erro_oci = ""          # motivo da falha OCI (quando houver)
     ss.proc_erro_analise = ""      # mensagem de erro da análise (quando houver)
+    ss.proc_erro_truncada = False  # True quando a falha foi corte por limite de saída
     ss.proc_erro_etapa = ""        # etapa onde ocorreu erro
     # Controles de curadoria — limpos para não herdar dados do lote anterior
     ss.validacao_factual = {}
@@ -54,6 +55,7 @@ def resetar_lote(ss=None):
     ss.status_ativos = {}          # legado — manter compatibilidade
     ss.regen = {}
     ss.pacotes_oci = []
+    ss.erro_curadoria = ""     # falha ao gravar decisão no bucket
 
 
 def init_state():
@@ -85,6 +87,7 @@ def init_state():
     ss.status_ativos = {}  # "hist:ativo" -> rascunho | aprovado | rejeitado (legado)
     ss.regen = {}
     ss.pacotes_oci = []
+    ss.erro_curadoria = ""  # falha ao gravar decisão no bucket
     ss.toast = None
     ss.mostrar_copia = False
 
@@ -136,3 +139,97 @@ def resumo_ativos():
     for status in st.session_state.status_ativos.values():
         contagem[status] += 1
     return contagem
+
+
+def estado_editorial(chave, status_curadoria, status_legado=None):
+    """Estado editorial atual de um ativo ("hist:ativo").
+
+    Lê primeiro status_curadoria, que a Curadoria grava em todas as decisões
+    (inclusive Solicitar ajustes). Usa status_ativos (legado) só quando o
+    estado atual não existe. Sem nenhum dos dois, o ativo é rascunho.
+    """
+    status = (status_curadoria or {}).get(chave)
+    if status is None:
+        status = (status_legado or {}).get(chave, "rascunho")
+    return status
+
+
+def contagem_ativos_completa(historias, status_curadoria, status_legado=None):
+    """Conta ativos por estado, incluindo os que não têm status registrado.
+
+    Args:
+        historias: lista de histórias do lote
+        status_curadoria: estado atual {f"{hid}:{aid}": "rascunho"|"ajustes"|"aprovado"|"rejeitado"}
+        status_legado: status_ativos (legado), usado só quando o estado atual não existe
+
+    Returns:
+        dict com: total, rascunho, ajustes, aprovado, rejeitado
+    """
+    total = sum(len(h.get("ativos", [])) for h in historias)
+    aprovado = 0
+    rejeitado = 0
+    ajustes = 0
+
+    # Conta os que têm status registrado
+    for h in historias:
+        for ativo in h.get("ativos", []):
+            chave = f"{h['id']}:{ativo['id']}"
+            status = estado_editorial(chave, status_curadoria, status_legado)
+            if status == "aprovado":
+                aprovado += 1
+            elif status == "rejeitado":
+                rejeitado += 1
+            elif status == "ajustes":
+                ajustes += 1
+    
+    # Rascunho = total - (aprovado + rejeitado + ajustes)
+    rascunho = total - aprovado - rejeitado - ajustes
+    
+    return {
+        "total": total,
+        "rascunho": rascunho,
+        "ajustes": ajustes,
+        "aprovado": aprovado,
+        "rejeitado": rejeitado,
+    }
+
+
+def legenda_ativos(contagem):
+    """Monta a legenda dos ativos a partir da contagem.
+    
+    Função pura que não depende de st.session_state.
+    
+    Args:
+        contagem: dict retornado por contagem_ativos_completa()
+    
+    Returns:
+        str: legenda formatada (ex: "5 rascunhos aguardando revisão humana · 1 aprovado")
+    """
+    from styles import plural
+    
+    aguardando = contagem["rascunho"] + contagem["ajustes"]
+    legenda = f"{plural(aguardando, 'rascunho aguardando', 'rascunhos aguardando')} revisão humana"
+    
+    if contagem["aprovado"] > 0:
+        legenda += f" · {plural(contagem['aprovado'], 'aprovado', 'aprovados')}"
+
+    return legenda
+
+
+def situacao_ativos(contagem, gravacao):
+    """Linha de situação do resumo do lote no Processamento.
+
+    Mostra o total de ativos e quantos aguardam revisão (rascunho e ajustes),
+    para que um ativo aprovado não continue contado como rascunho.
+
+    Args:
+        contagem: dict retornado por contagem_ativos_completa()
+        gravacao: texto do estado da gravação (ex: "salvos no OCI")
+
+    Returns:
+        str: ex. "6 ativos · 5 aguardando revisão · salvos no OCI"
+    """
+    from styles import plural
+
+    aguardando = contagem["rascunho"] + contagem["ajustes"]
+    return f"{plural(contagem['total'], 'ativo', 'ativos')} · {aguardando} aguardando revisão · {gravacao}"

@@ -1,22 +1,181 @@
 # CommunityLab — Relatório de Homologação e Aceite do MVP
 
-**Projeto:** CommunityLab — Detector Inteligente de Histórias de Sucesso e Testemunhos  
-**Hackathon:** ONE G10 — Equipe 18  
-**Documento:** `COMMUNITYLAB_HOMOLOGACAO_MVP.md`  
-**Versão:** 0.5 — Resultados e evidências da rodada de 17/11/2026  
-**Data de preparação:** 26/10/2026  
-**Última atualização:** 17/11/2026  
-**Referência funcional:** `docs/CATP_TEST_PLAN.md` — CATP v1.1  
-**Referência de gestão:** Card 23 — Testes Integrados e Demonstração  
-**Responsável funcional e consolidação:** Marcus — Project Manager  
-**Responsável principal pelos testes integrados:** Ketlyn Barbosa  
-**Apoio técnico:** Tissiany Delmiro, Jaqueline de Lira e Luciene Godoy  
+**Projeto:** CommunityLab — Detector Inteligente de Histórias de Sucesso e Testemunhos<br>
+**Hackathon:** ONE G10 — Equipe 18<br>
+**Documento:** `COMMUNITYLAB_HOMOLOGACAO_MVP.md`<br>
+**Versão:** 0.6 — Consolidação de integrações e pendências em 22/11/2026<br>
+**Data de preparação:** 26/10/2026<br>
+**Última atualização:** 22/11/2026<br>
+**Referência funcional:** `docs/CATP_TEST_PLAN.md` — CATP v1.1<br>
+**Referência de gestão:** Card 23 — Testes Integrados e Demonstração<br>
+**Responsável funcional e consolidação:** Marcus — Project Manager<br>
+**Responsável principal pelos testes integrados no planejamento histórico:** Ketlyn Barbosa<br>
+**Apoio técnico:** Tissiany Delmiro, Jaqueline de Lira e Luciene Godoy
 
 **STATUS GERAL: HOMOLOGAÇÃO PENDENTE — SEM ACEITE DO MVP**
 
 > **Regra de evidência:** nenhuma implementação declarada, integração de commit, teste unitário informado ou demonstração simulada constitui, isoladamente, aprovação de um caso de aceitação. A aprovação exige execução, observação e evidências vinculadas ao código efetivamente testado.
 
 > **Nota da versão 0.4:** esta atualização preserva os registros históricos dos PRs #26 e #28, distingue a sessão Streamlit associada ao commit `9fcb06e` do teste direto posterior do Gemini, incorpora os esclarecimentos técnicos da Jaqueline na Issue #27 e corrige a atribuição da responsabilidade OCI. Não constitui aceite do MVP.
+
+---
+
+## Atualização consolidada — 22/11/2026
+
+**STATUS GERAL: HOMOLOGAÇÃO PENDENTE — SEM ACEITE DO MVP**
+
+Esta atualização consolida integrações, revisões e pendências. Não representa uma nova execução de testes integrados nem altera retroativamente os resultados das rodadas anteriores.
+
+As seções históricas e a matriz anterior devem ser interpretadas conforme suas datas, ambientes e versões. Afirmações antigas sobre defeitos ou funcionalidades pendentes não descrevem automaticamente o código atual.
+
+### A. Referência de código e implantação
+
+| Item | Situação |
+|---|---|
+| Código de referência | Main em `fcc077e`, após integração do PR #64. |
+| Última evidência de implantação anteriormente registrada | `4beccce`, com contêiner saudável e spaCy carregado sem fallback. |
+| Implantação das integrações posteriores | Ainda não confirmada nesta consolidação. |
+| Homologação da versão consolidada | Pendente. |
+
+Código integrado, serviço disponível e aceite funcional são verificações distintas.
+
+### B. Integrações posteriores à rodada histórica
+
+| PR | Entrega | Situação e limite |
+|---|---|---|
+| #56 | Horário no Histórico | Integrado; exibição em São Paulo, preservando instantes e identificadores UTC. |
+| #57 | Persistência editorial | Integrado em `4beccce`; grava decisões e campos editados. Reteste funcional da versão consolidada pendente. |
+| #59 | Conferência de citações nas telas | Integrado em `d703feb`; conferência por origem e revalidação após edição. Reteste na VM pendente. |
+| #60 | Identificação dos provedores | Integrado em `b6ff760`; Gemini, Cohere e Groq reconhecidos como análise real. Isso não determina a natureza dos dados. |
+| #61 | Resposta truncada e nova tentativa | Integrado em `f6dd880`; trata MAX_TOKENS e permite nova tentativa sobre o mesmo lote. Não garante sucesso da tentativa seguinte. |
+| #62 | Natureza declarada no pacote | Integrado em `d033d5a`; pacote principal 1.1 com natureza declarada. Evidencias.json permanece 1.0. |
+| #63 | Declaração e selo nas telas | Integrado em `04ec8c6`; reteste declaração → pacote OCI → selo pendente. |
+| #66 | Fidelidade do exemplo hist-001 | Integrado em `5cc9e2e`; descrição e ativo limitados ao que a citação sustenta. Citação preservada. |
+| #64 | Correções de anonimização | Integrado em `fcc077e`, após aprovação de Tissiany. Implantação e reteste pela interface pendentes. |
+
+Integração de código não aprova automaticamente os casos CATP relacionados.
+
+### C. Evidências posteriores já registradas no plano CATP
+
+**CATP-011 — Persistência e idempotência OCI**
+
+O registro de 16/11, vinculado ao PR #43 e ao código `d08e839`, comprova gravação, leitura e regravação sem duplicidade nos casos documentados.
+
+Esse resultado não comprova, por si só:
+
+- Configuração privada do bucket.
+- Permissões e autenticação da aplicação.
+- Tratamento real de acesso negado ou credencial inválida.
+- Condições gratuitas e consumo da conta.
+- Recuperação editorial completa em nova sessão.
+
+Essas verificações possuem escopos e evidências próprios.
+
+**CATP-022 — Solicitação de ajustes**
+
+O plano CATP registra execução por Jaqueline em 19/11, na branch `feat/curadoria-persistida`, commits `d7e4d14` e `2cc0ad1`, sobre a main `756e9b5`.
+
+Foi registrada a decisão de ajustes e a observação editorial no pacote, com leitura posterior pelo Histórico após encerramento da sessão do navegador.
+
+O plano classifica o caso como **Executado**, mantendo a aprovação funcional e o aceite geral sob responsabilidade do PM.
+
+Essa evidência demonstra registro e leitura do bloco de curadoria. Não demonstra reconstrução completa das histórias e dos campos editáveis em uma nova sessão.
+
+**CATP-024 — Resposta truncada**
+
+O plano CATP já contém o caso de resposta truncada, relacionado ao tratamento integrado pelo PR #61.
+
+A matriz histórica deste relatório não contém esse caso. Sua ausência naquela matriz não significa ausência no plano atual.
+
+O reteste integrado da versão implantada deve confirmar a mensagem específica e a preservação do lote na nova tentativa. Nova tentativa não equivale a sucesso garantido.
+
+### D. Revisão técnica da anonimização — PR #64
+
+Tissiany aprovou o head `f929124` após revisar os três commits novos e relatou:
+
+- 3.682 testes aprovados.
+- Verificações locais com modelo spaCy real e fallback forçado.
+- Mascaramento dos nomes testados: Paulo, Bianca Ferraz, Renata Moura, Carolina Teixeira e Bruno Carvalho.
+- Preservação dos locais e termos técnicos testados no caminho com o modelo real.
+
+No fallback, foram observados falsos positivos em palavras comuns, cidades e termos técnicos, incluindo “Estudei SQL”, “Porto Alegre” e “Cloud Foundations”.
+
+Os nomes isolados testados foram mascarados. A descrição anterior dessa limitação não deve ser mantida como falha atual comprovada desses mesmos casos.
+
+Os resultados são da revisão local relatada pela revisora. Não comprovam anonimização completa, implantação do merge ou funcionamento pela interface no ambiente publicado.
+
+Para uso de mensagens reais, confirmar a disponibilidade do modelo ou encaminhar o conteúdo para revisão humana antes do envio ao provedor.
+
+### E. Entregas em revisão
+
+| PR | Escopo | Situação nesta conferência |
+|---|---|---|
+| #67 | Cases de sucesso — Card 14 | Aberto para revisão. Execução local informada: 3.709 testes aprovados. Sem validação real de IA/OCI nesta entrega. |
+| #68 | Testemunhos estruturados — Card 13 | Aberto para revisão, baseado no #67. Execução local informada: 3.729 testes aprovados, incluindo os cases. |
+| #69 | README principal | Aberto para revisão, com atualização posterior registrando o merge do #64. |
+| #70 | READMEFrontend | Aberto para revisão, com atualização posterior registrando o merge do #64 e as limitações do fallback. |
+| #71 | Arquitetura | Aberto para revisão; documenta o fluxo do aplicativo com referência em `fcc077e`. |
+
+Os resultados das suítes pertencem às respectivas versões e ambientes. Não devem ser somados nem apresentados como uma única execução da versão implantada.
+
+**Dependência:** integrar #67 antes de ajustar a base do #68 para main e reconferir o diff e as verificações.
+
+Os testes locais dos novos formatos não aprovam automaticamente CATP-008, CATP-009 ou o fluxo completo.
+
+### F. Pendências para homologação
+
+- [ ] Confirmar SHA e saúde da versão consolidada implantada.
+- [ ] Retestar anonimização pela interface com dados fictícios, registrando modelo, versões e resultados.
+- [ ] Retestar citações literais, compatíveis com anonimização, incompatíveis e editadas.
+- [ ] Conferir identificação dos provedores e distinção entre análise real e simulação.
+- [ ] Retestar truncamento e nova tentativa sem perder o lote.
+- [ ] Conferir os três valores de natureza declarada, reinício por lote novo, bloqueio após importação e correspondência entre pacote e selo.
+- [ ] Revisar e integrar os formatos dos PRs #67 e #68.
+- [ ] Validar testemunho estruturado e case com IA e OCI reais, usando mensagens fictícias.
+- [ ] Validar fidelidade contextual e vínculos de origem dos ativos.
+- [ ] Retestar persistência de campos editados, decisões e pareceres.
+- [ ] Comprovar recuperação editorial completa em nova sessão ou registrar formalmente a decisão de escopo.
+- [ ] Consolidar os três cenários principais com entradas, resultados e evidências identificados.
+- [ ] Concluir as evidências de configuração OCI do Card 18.
+- [ ] Conciliar os registros do plano CATP, deste relatório e do Card 23.
+- [ ] Registrar a decisão funcional do PM sobre os casos aplicáveis e o aceite do MVP.
+
+A nota “Exemplo fictício…” na Importação ainda depende da origem do lote. Essa ressalva deve ser considerada na avaliação da identificação dos dados demonstrativos.
+
+O painel analítico avançado continua opcional. A aplicabilidade dos critérios CQF pendentes deve ser decidida e documentada, sem aprovação ou exclusão implícita.
+
+### G. Apresentação e documentação
+
+A apresentação final de 4min55s foi aprovada pelo grupo, e o Card 25 foi concluído.
+
+O aceite da apresentação não encerra o Card 23 nem comprova homologação dos formatos principais, da recuperação editorial ou da versão consolidada.
+
+A documentação dos PRs #69, #70 e #71 continua sujeita à revisão técnica. Também permanece necessária a conferência dos arquivos e links enviados à plataforma.
+
+### H. Responsabilidades e preservação do histórico
+
+Marcus permanece responsável pela consolidação funcional e decisão de aceite, com apoio técnico de Tissiany, Jaqueline e Luciene.
+
+A atribuição de testes integrados a Ketlyn no planejamento e nos registros anteriores é histórica. Sua saída da equipe não apaga os créditos anteriores nem representa redistribuição automática de todas as tarefas.
+
+Os registros seguintes são preservados como histórico das versões e execuções identificadas. A matriz anterior não deve ser apresentada como resultado de uma nova execução em 22/11.
+
+**Referências:**
+
+- [Plano CATP](CATP_TEST_PLAN.md)
+- [Card 23 — Homologação](https://trello.com/c/dwxU4dBD)
+- [Card 18 — Configuração OCI](https://trello.com/c/QG1OyKDW)
+- [PR #43 — OCI e idempotência](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/43)
+- [PR #57 — Persistência editorial](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/57)
+- [PR #64 — Anonimização](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/64)
+- [PR #67 — Cases](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/67)
+- [PR #68 — Testemunhos](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/68)
+
+---
+
+## Registros históricos — seções seguintes
+
+As seções numeradas abaixo preservam o planejamento e as execuções anteriores, conforme suas datas e referências de código.
 
 ---
 
@@ -411,7 +570,33 @@ Defeito vinculado / gravidade: —
 Reteste e conclusão: Aprovado sem ressalvas em primeira rodada.
 ```
 
-### 4.4 Rodada integrada de 17/11/2026
+### 4.4 Reteste isolado da anonimização — 20/11/2026
+
+- Escopo: preservar “Power BI” como termo técnico, vinculado ao PR #44 / Card 07. Este reteste é separado da conferência de citações do PR #54.
+- SHA-base: `756e9b59820ad91a17fc3718514723c77e9315c8`. A execução foi feita na branch `fix/anonimizacao-regressao-power-bi`, com alterações locais ainda não commitadas.
+- No ambiente local `.venv`, spaCy `3.8.18` carregou `pt_core_news_sm`; a mensagem fictícia “Criei um painel em Power BI para analisar os resultados.” permaneceu intacta e a contagem de nomes foi zero.
+- No container construído para esse reteste, a aplicação iniciou saudável (`/_stcore/health`: HTTP 200). A imagem `sha256:93b0ee0d5349ac21e0de85fc78432a556d0f094f531ba7d1461a0b01499f5af0` foi construída sobre o SHA-base acima, com alterações locais não commitadas. O container tinha spaCy `3.8.18`, mas não `pt_core_news_sm`; o download em tempo de execução caiu na instalação do usuário (`/tmp/.local/lib/python3.11/site-packages`), ausente de `sys.path`. `spacy.load()` falhou com E050 e a função usou o fallback. A mensagem fictícia permaneceu intacta e a contagem de nomes foi zero.
+- A regressão determinística passou nos caminhos simulados de spaCy e fallback; a suíte completa passou: 3.639 testes. Esse resultado identifica a imagem testada, não a versão implantada na VM, cujo SHA segue desconhecido.
+
+### 4.5 Reteste informado na VM atualizada em `68ec2f2` — 19/11/2026
+
+Resultado relatado pelo gerente para a rodada com entrada JSON fictícia de três autores/interações e provedor `Cohere`:
+
+- Os contadores mostraram 6 gerados/6 aguardando; após aprovar um ativo, 6 gerados/5 aguardando/1 aprovado. Depois de desfazer e solicitar ajustes, voltaram a 6 aguardando/0 aprovados. Histórias também refletiu o estado pendente.
+- Os rótulos completos dos botões apareceram no Estúdio nesta resolução, o envio para Curadoria funcionou e o Histórico listou o lote e abriu os dois JSONs.
+- No lote `LOTE-20261119T205249Z-EC215F909A5943B3B2D90BB23E36A1C7`, interação 902, “Power BI” virou “[NOME] BI” nos fatos, na citação, no post e em `evidencias.json`. A conferência mostrou “Trecho não encontrado na mensagem original”; o ativo não foi aprovado.
+
+**Conferência local do caminho de anonimização** — A imagem Docker foi reconstruída a partir do commit completo `68ec2f26eed2596e569b3b3527568435ce093cdd` (`68ec2f2`). A imagem `sha256:29d8efa99844bc11f12a3dfa5d05da4f8ab90d11a278411e82fa1c45cdc34c84` iniciou saudável (HTTP 200). No container, spaCy `3.8.18` estava instalado, mas `pt_core_news_sm` não. O download em tempo de execução instalou no user-site, ausente de `sys.path`; `spacy.load()` falhou com E050 e o fallback foi usado. Com a frase sintética “Criei um painel em Power BI para analisar os resultados.”, a versão desse commit reproduziu “Criei um painel em [NOME] BI para analisar os resultados.”
+
+Esse teste confirma o fallback na imagem reconstruída do SHA informado, não uma inspeção direta da VM. A regressão do mascaramento está vinculada ao PR #44 / Card 07 e separada dos testes de conferência de citações do PR #54. O ativo da rodada não foi aprovado.
+
+### 4.6 Reteste local da atualização do PR #44 — 20/11/2026
+
+- A suíte completa passou: 170 testes.
+- A imagem Docker instalou `pt_core_news_sm` `3.8.0` durante o build e carregou o modelo como usuário sem privilégios. “Usei”, “Com” e “Power BI” permaneceram intactos; “MARIA” foi mascarado.
+- O endpoint `/_stcore/health` respondeu `ok` e o container ficou `healthy`. A imagem foi construída como `linux/arm64`; a arquitetura da VM de destino não foi verificada.
+
+### 4.7 Rodada integrada de 17/11/2026
 
 Execução manual com dados fictícios no Streamlit publicado. A origem `cohere` foi confirmada nos pacotes recuperados. O commit implantado não foi identificado, portanto as verificações desse ambiente são limitadas aos lotes e controles observados. O Card 23 registra a aprovação do CATP-015 para o lote fictício 601–602; a homologação formal da versão publicada segue sujeita aos critérios da seção 3.5.
 
@@ -471,10 +656,10 @@ Quando não for possível conferir a origem de uma evidência, utilizar a indica
 
 ### 5.2 Execução local preliminar — PRELIM-20261029-01
 
-**Responsável:** Marcus — Project Manager  
-**Ambiente:** Streamlit local  
-**Commit de referência:** `9fcb06e`  
-**Arquivo:** `data/samples/teste_importacao_catp001.csv`  
+**Responsável:** Marcus — Project Manager<br>
+**Ambiente:** Streamlit local<br>
+**Commit de referência:** `9fcb06e`<br>
+**Arquivo:** `data/samples/teste_importacao_catp001.csv`<br>
 **Tipo:** Verificação funcional preliminar.
 
 **Passos observados:**
@@ -675,9 +860,9 @@ O reteste deverá comprovar:
 
 **Título:** Corrigir inconsistências na análise Gemini, fallback mock e persistência OCI.
 
-**Data:** 29/10/2026  
-**Prioridade:** Urgente  
-**Situação:** Aberta  
+**Data:** 29/10/2026<br>
+**Prioridade:** Urgente<br>
+**Situação:** Aberta<br>
 **Reteste:** Pendente
 
 **Referência:** https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/issues/27

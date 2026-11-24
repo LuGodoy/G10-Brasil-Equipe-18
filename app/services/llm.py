@@ -37,6 +37,7 @@ from pathlib import Path
 
 import requests
 
+from src import SAL_PADRAO, pseudonimizar_autor  # type: ignore[reportMissingImports]
 from src.preprocessing import anonimizar_texto, normalizar_texto
 
 MODELO_PADRAO = "gemini-1.5-flash"
@@ -79,6 +80,15 @@ PROMPT = Path(__file__).with_name("prompt_analise.txt").read_text(encoding="utf-
 
 class ErroAnalise(RuntimeError):
     """Falha controlada na análise por LLM."""
+
+
+class ErroRespostaTruncada(ErroAnalise):
+    """A resposta do LLM foi cortada pelo limite de saída.
+
+    Separado de `ErroAnalise` porque a causa é outra: o texto não está inválido,
+    ele termina no meio. A tela pode dizer isso sem mandar quem lê procurar um
+    problema no JSON.
+    """
 
 def _iniciais(nome: str) -> str:
     partes = [p for p in re.split(r"\s+", (nome or "").strip()) if p]
@@ -336,18 +346,21 @@ def _normalizar(historias: list, interacoes: list) -> list:
             continue
         if str(hist.get("id") or "").strip():
             identificador = str(hist["id"]).strip()
-        autor = str(hist.get("autor") or "").strip()
-        original = str(hist.get("mensagem_original") or "").strip()
         base = _fonte_confiavel(hist, por_posicao)
         canal = str(hist.get("canal") or (base.get("canal") if base else "") or "")
-        # O texto usado para validar a citacao vem do lote, nunca do modelo.
+        # Original e autor vêm da interação rastreada, não do texto ecoado pelo LLM.
         texto_fonte = str(base.get("texto") or "") if base else ""
+        original = texto_fonte.strip()
+        autor_fonte = str((base or {}).get("autor") or hist.get("autor") or "").strip()
+        autor = pseudonimizar_autor(autor_fonte, SAL_PADRAO)
         id_interacao = int(base.get("_id") or 0) if base else 0
 
         ativos = []
         for ativo in hist.get("ativos") or []:
             if not isinstance(ativo, dict) or not ativo.get("id"):
                 continue
+            if str(ativo["id"]) in ("case_sucesso", "testemunho_estruturado"):
+                continue  # Validado separadamente, depois das citações.
             campos = ativo.get("campos") or {}
             if not isinstance(campos, dict) or not any(str(v).strip() for v in campos.values()):
                 continue
@@ -366,8 +379,6 @@ def _normalizar(historias: list, interacoes: list) -> list:
             motivos.append("Sem autor informado.")
         if not original:
             motivos.append("Sem mensagem original informada.")
-        if not ativos:
-            motivos.append("Sem ativo gerado: nao ha conteudo para publicar.")
 
         classificacao, motivos_classificacao = _campos_classificacao(hist)
         motivos.extend(motivos_classificacao)
@@ -401,6 +412,40 @@ def _normalizar(historias: list, interacoes: list) -> list:
         if not citacoes:
             motivos.append("Sem citacao literal: nenhum destaque existe no texto original.")
 
+        from services.cases import preparar_case
+        cases = [a for a in (hist.get("ativos") or [])
+                 if isinstance(a, dict) and a.get("id") == "case_sucesso"]
+        motivo_case = "Modelo não retornou case; revisar suficiência das evidências."
+        case = None
+        if len(cases) == 1 and base and citacoes:
+            case, motivo_case = preparar_case(
+                cases[0], original, resultados, citacoes, id_interacao
+            )
+        elif len(cases) > 1:
+            motivo_case = "Modelo retornou cases duplicados para a mesma história."
+        if case:
+            ativos.append(case)
+        else:
+            ULTIMOS_AVISOS.append(f"{identificador}: {motivo_case}")
+        from services.testemunhos import preparar_testemunho
+        testemunhos = [a for a in (hist.get("ativos") or [])
+                       if isinstance(a, dict) and a.get("id") == "testemunho_estruturado"]
+        motivo_testemunho = "Modelo não retornou testemunho; revisar suficiência das evidências."
+        testemunho = None
+        if len(testemunhos) == 1 and base and citacoes:
+            testemunho, motivo_testemunho = preparar_testemunho(
+                testemunhos[0], original, citacoes, id_interacao
+            )
+        elif len(testemunhos) > 1:
+            motivo_testemunho = "Modelo retornou testemunhos duplicados para a mesma história."
+        if testemunho:
+            ativos.append(testemunho)
+        else:
+            ULTIMOS_AVISOS.append(f"{identificador}: {motivo_testemunho}")
+        # Formatos principais recusados não apagam uma história revisável.
+        if not ativos and not cases and not testemunhos:
+            motivos.append("Sem ativo gerado: nao ha conteudo para publicar.")
+
         if motivos:
             _registrar_recusa(identificador, motivos)
             continue
@@ -431,6 +476,8 @@ def _normalizar(historias: list, interacoes: list) -> list:
                 "destaques": [c["texto"] for c in citacoes],
                 "fatos": fatos,
                 "ativos": ativos,
+                "case_pendente": motivo_case if case is None else "",
+                "testemunho_pendente": motivo_testemunho if testemunho is None else "",
                 "tipo_insight": classificacao["tipo_insight"],
                 "topicos": classificacao["topicos"],
                 "justificativa": classificacao["justificativa"],
@@ -472,7 +519,9 @@ def analisar(interacoes: list, maximo: int = MAXIMO_HISTORIAS, timeout: int = 60
         payload.append(
             {
                 "id": id_interacao,
-                "autor": interacao.get("autor", ""),
+                "autor": pseudonimizar_autor(
+                    str(interacao.get("autor") or ""), SAL_PADRAO
+                ),
                 "canal": interacao.get("canal", ""),
                 "tipo": interacao.get("tipo", "mensagem"),
                 "texto": interacao["texto"],
@@ -498,6 +547,18 @@ def analisar(interacoes: list, maximo: int = MAXIMO_HISTORIAS, timeout: int = 60
     except Exception as erro:
         raise ErroAnalise(f"Erro inesperado na chamada do LLM: {erro}") from erro
 
+    # Resposta cortada no meio pelo limite de saída: a causa é o limite, não o
+    # formato. Verificada antes de interpretar, para a tela dizer o certo.
+    finish_reason = str(getattr(resultado, "finish_reason", "") or "")
+    if finish_reason.upper() == "MAX_TOKENS":
+        raise ErroRespostaTruncada(
+            "A resposta da IA foi truncada pelo limite de saída "
+            f"({len(texto)} caracteres recebidos; "
+            f"provedor={resultado.provedor}; modelo={resultado.modelo}; "
+            "finish_reason=MAX_TOKENS). "
+            "Reduza o lote ou aumente LLM_MAX_OUTPUT_TOKENS e tente novamente."
+        )
+
     # Desserializa e valida o JSON retornado.
     try:
         conteudo = json.loads(texto)
@@ -507,17 +568,10 @@ def analisar(interacoes: list, maximo: int = MAXIMO_HISTORIAS, timeout: int = 60
         try:
             conteudo = json.loads(texto_limpo)
         except json.JSONDecodeError as erro:
-            finish_reason = resultado.finish_reason or "não informado"
-            diagnostico_limite = ""
-            if str(finish_reason).upper() == "MAX_TOKENS":
-                diagnostico_limite = (
-                    "A resposta foi truncada pelo limite de saída; aumente "
-                    "LLM_MAX_OUTPUT_TOKENS. "
-                )
             raise ErroAnalise(
                 "JSON inválido do LLM: "
                 f"provedor={resultado.provedor}; modelo={resultado.modelo}; "
-                f"finish_reason={finish_reason}; {diagnostico_limite}"
+                f"finish_reason={finish_reason or 'não informado'}; "
                 f"resposta_chars={len(texto)}; "
                 f"parser_chars={len(texto_limpo)}; linha={erro.lineno}; "
                 f"coluna={erro.colno}; posição={erro.pos}. "

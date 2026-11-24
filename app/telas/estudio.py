@@ -2,7 +2,7 @@
 import streamlit as st
 
 from state import campo, definir, historia_por_id, ir_para, valor
-from styles import avatar, cabecalho, caixa, chip, destacar, esc, md, topbar
+from styles import avatar, cabecalho, caixa, chip, conferencia_da_citacao_editada, destacar, esc, md, topbar
 
 
 def _chave(hid, aid, nome_campo):
@@ -101,6 +101,13 @@ def _coluna_conteudo(h):
     """Coluna direita: conteúdo gerado pela IA."""
     hid = h["id"]
     
+    if h.get("testemunho_pendente"):
+        st.warning("Testemunho pendente: " + h["testemunho_pendente"])
+    if h.get("case_pendente"):
+        st.warning("Case pendente: " + h["case_pendente"])
+    if not h["ativos"]:
+        st.info("História preservada para revisão; nenhum ativo elegível disponível.")
+        return
     with st.container(border=True):
         md('<div style="font-size:18px; font-weight:600; margin-bottom:12px;">Conteúdo gerado pela IA</div>')
         
@@ -120,6 +127,7 @@ def _coluna_conteudo(h):
             campo(st.text_input, "Título", _chave(hid, aid, "titulo"), ativo["campos"]["titulo"])
             campo(st.text_area, "Descrição", _chave(hid, aid, "descricao"), ativo["campos"]["descricao"], height=120)
             campo(st.text_area, "Citação", _chave(hid, aid, "citacao"), ativo["campos"]["citacao"], height=60)
+            conferencia_da_citacao_editada(valor(_chave(hid, aid, "citacao"), ""), h, st.session_state.interacoes)
             
             # Contador de caracteres
             titulo = valor(_chave(hid, aid, "titulo"), "")
@@ -138,8 +146,11 @@ def _coluna_conteudo(h):
             st.caption(f"{len(titulo) + len(frase)} caracteres no total")
             copiavel = f"{titulo}\n{frase}"
         elif ativo["tipo"] == "texto":
+            if ativo.get("titulo"):
+                st.caption(ativo["titulo"])
             texto_campo = ativo["campos"].get("texto", "")
-            campo(st.text_area, "Texto do case", _chave(hid, aid, "texto"), texto_campo, height=300)
+            rotulo_texto = "Texto do case" if "Case" in ativo["nome"] else "Texto"  # mesma regra da Curadoria
+            campo(st.text_area, rotulo_texto, _chave(hid, aid, "texto"), texto_campo, height=300)
             texto = valor(_chave(hid, aid, "texto"), "")
             st.caption(f"{len(texto)} caracteres")
             copiavel = texto
@@ -167,11 +178,11 @@ def _coluna_conteudo(h):
         
         # Botões de ação
         st.write("")
-        col1, col2, col3, col4 = st.columns([1.2, 1.2, 2, 2])
+        col1, col2, col3 = st.columns([1.5, 1.2, 2.8])
         col1.button("↻ Regenerar", key=f"regen_estudio_{hid}_{aid}", on_click=_regenerar, args=(hid, aid), 
                    use_container_width=True)
         col2.button("Copiar", key=f"copy_estudio_{hid}_{aid}", on_click=_alternar_copia, use_container_width=True)
-        col4.button("→ Enviar para curadoria", key=f"enviar_{hid}", on_click=_enviar_curadoria, args=(hid,),
+        col3.button("→ Enviar para curadoria", key=f"enviar_{hid}", on_click=_enviar_curadoria, args=(hid,),
                    type="primary", use_container_width=True)
         
         if st.session_state.mostrar_copia:

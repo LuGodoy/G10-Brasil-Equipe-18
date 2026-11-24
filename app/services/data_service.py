@@ -10,9 +10,10 @@ PROVISÓRIO. Quem define o contrato oficial é o back.
 import csv
 import io
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from mocks import mock_data as m
+from services import conferencia_citacao as _conf
 
 CAMPOS_OBRIGATORIOS = ("autor", "canal", "texto")
 
@@ -96,6 +97,53 @@ def id_interacao(interacao, posicao_1indexed):
     return id_lote if isinstance(id_lote, int) and id_lote >= 1 else posicao_1indexed
 
 
+# ---------- Conferência de citação ----------
+# A regra fica em services/conferencia_citacao.py. Aqui só resolvemos qual
+# interação é a origem, para as telas não importarem o módulo direto.
+MOTIVO_LITERAL = _conf.MOTIVO_LITERAL
+MOTIVO_ANONIMIZADO = _conf.MOTIVO_ANONIMIZADO
+MOTIVO_SEM_ID = "ID não informado"
+MOTIVO_INDISPONIVEL = "Conferência indisponível"
+MOTIVO_VARIAS_ORIGENS = "Conferência indisponível (mais de uma origem)"
+
+
+def _id_valido(valor):
+    return isinstance(valor, int) and not isinstance(valor, bool) and valor >= 1
+
+
+def conferencia_da_citacao(citacao, interacoes):
+    """Confere uma citação contra o texto da interação indicada pelo seu id_interacao.
+
+    Devolve (confere, motivo, id_interacao). confere é True ou False quando a
+    conferência rodou, e None quando não deu para conferir (sem ID válido ou
+    interação fora do lote). None nunca deve ser exibido como conferido.
+    """
+    id_int = (citacao or {}).get("id_interacao")
+    if not _id_valido(id_int):
+        return None, MOTIVO_SEM_ID, None
+    original = next(
+        (i.get("texto", "") for i in (interacoes or []) if i.get("_id_efetivo") == id_int),
+        None,
+    )
+    if original is None:
+        return None, MOTIVO_INDISPONIVEL, id_int
+    confere, motivo = _conf.conferir_citacao(citacao.get("texto", ""), original)
+    return confere, motivo, id_int
+
+
+def conferencia_da_citacao_do_ativo(texto, historia, interacoes):
+    """Confere a citação editável de um ativo, que não traz id_interacao próprio.
+
+    A origem é interacoes_origem da história. Com mais de uma origem não há
+    como saber contra qual conferir, então o resultado fica indisponível.
+    """
+    origens = (historia or {}).get("interacoes_origem") or []
+    if len(origens) > 1:
+        return None, MOTIVO_VARIAS_ORIGENS, None
+    id_int = origens[0] if origens else None
+    return conferencia_da_citacao({"texto": texto, "id_interacao": id_int}, interacoes)
+
+
 # ---------- Ingestão ----------
 def _normalizar(itens):
     global AVISOS_IDS, ERRO_IDS_DUPLICADOS
@@ -174,6 +222,7 @@ def avisos_validacao_ids():
 # ---------- Análise ----------
 ORIGEM_ANALISE = "mock"   # "gemini" quando a análise real responde
 ULTIMO_ERRO = ""          # preenchido quando a análise real falha
+ULTIMO_ERRO_TRUNCADO = False  # True quando a falha foi corte por limite de saída
 
 
 ULTIMO_ERRO_OCI = ""
@@ -204,21 +253,56 @@ def _registrar_erro_oci(erro):
     print(f"[oci] falhou: {ULTIMO_ERRO_OCI}", flush=True)
 
 
+def _fuso_brasil():
+    """Fuso de São Paulo, com queda para UTC-3 fixo.
+
+    Desde 2019 o Brasil não tem horário de verão, então UTC-3 é o valor
+    correto o ano inteiro. O fallback existe para imagem sem base de fusos,
+    como alguns containers mínimos.
+    """
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo("America/Sao_Paulo")
+    except Exception:  # pragma: no cover - depende da imagem
+        return timezone(timedelta(hours=-3))
+
+
 def _data_br(iso: str) -> str:
-    """Converte 2026-10-22T04:05:54+00:00 em 22/10/2026 04:05."""
-    texto = (iso or "").replace("T", " ")
-    if len(texto) < 16:
-        return texto
-    data, hora = texto[:10], texto[11:16]
+    """Converte o instante ISO para o fuso de São Paulo: 22/10/2026 01:05.
+
+    Aceita offset explícito, sufixo Z e data sem fuso (tratada como UTC, que é
+    como o bucket grava). Se o texto não for um instante válido, devolve o que
+    veio, só com a formatação antiga, sem levantar erro.
+    """
+    texto = (iso or "").strip()
+    if not texto:
+        return ""
+    try:
+        from datetime import datetime
+
+        momento = datetime.fromisoformat(texto.replace("Z", "+00:00"))
+    except ValueError:
+        momento = None
+
+    if momento is not None:
+        if momento.tzinfo is None:
+            momento = momento.replace(tzinfo=timezone.utc)
+        return momento.astimezone(_fuso_brasil()).strftime("%d/%m/%Y %H:%M")
+
+    legivel = texto.replace("T", " ")
+    if len(legivel) < 16:
+        return legivel
+    data, hora = legivel[:10], legivel[11:16]
     partes = data.split("-")
     if len(partes) != 3:
-        return texto
+        return legivel
     return f"{partes[2]}/{partes[1]}/{partes[0]} {hora}"
 
 
 def analisar(interacoes):
     """Analisa o lote com o provedor de LLM; falhas não viram histórias fictícias."""
-    global ORIGEM_ANALISE, ULTIMO_ERRO
+    global ORIGEM_ANALISE, ULTIMO_ERRO, ULTIMO_ERRO_TRUNCADO
     try:
         from . import llm  # import local: evita custo quando não usado
     except ImportError:  # pragma: no cover - execução como pacote vs. script
@@ -228,11 +312,13 @@ def analisar(interacoes):
         historias = llm.analisar(interacoes)
         ORIGEM_ANALISE = llm.ULTIMO_PROVEDOR or "gemini"
         ULTIMO_ERRO = ""
+        ULTIMO_ERRO_TRUNCADO = False
         print(f"[analise] concluída: {len(historias)} histórias", flush=True)
         return historias
     except Exception as erro:  # rede, chave ausente, JSON inválido
         ULTIMO_ERRO = str(erro)
         ORIGEM_ANALISE = "erro"
+        ULTIMO_ERRO_TRUNCADO = isinstance(erro, getattr(llm, "ErroRespostaTruncada", ()))
         print(f"[analise] FALHOU: {ULTIMO_ERRO}", flush=True)
         raise RuntimeError(f"Análise real falhou: {erro}") from erro
 
@@ -307,7 +393,22 @@ def listar_pacotes():
     ]
 
 
-def salvar_no_oci(pacotes, lote_id, historias=None):
+NATUREZAS_DADOS = ("ficticios", "reais", "nao_informado")
+NATUREZA_DADOS_PADRAO = "nao_informado"
+
+
+def normalizar_natureza_dados(valor):
+    """Devolve a natureza declarada, ou o padrao quando ausente/invalida.
+
+    A ausencia nao e erro: lote antigo, gravado antes deste campo, e lido como
+    "nao informado" — o mesmo que a tela mostra. Valor fora da lista tambem cai
+    no padrao, porque o selo so pode afirmar o que foi declarado.
+    """
+    texto = str(valor or "").strip().lower()
+    return texto if texto in NATUREZAS_DADOS else NATUREZA_DADOS_PADRAO
+
+
+def salvar_no_oci(pacotes, lote_id, historias=None, natureza_dados=None):
     """Grava os pacotes do lote no bucket.
 
     O caminho e montado pelo backend a partir do lote e do nome do arquivo,
@@ -315,6 +416,10 @@ def salvar_no_oci(pacotes, lote_id, historias=None):
     Sem credencial, nada e gravado: o item volta como falha de simulacao.
     Sem conteudo, nada e gravado: o item volta como falha, para nao salvar
     um arquivo apenas com metadados.
+
+    `natureza_dados` e a declaracao feita na importacao (ficticios, reais ou
+    nao_informado). Ausente ou invalida, entra o padrao `nao_informado`: o selo
+    so afirma o que foi declarado, nunca deduz do autor, do texto ou do provedor.
     """
     if historias is None:
         return [
@@ -347,10 +452,11 @@ def salvar_no_oci(pacotes, lote_id, historias=None):
     historias = list(historias)
 
     conteudo = {
-        "versao_schema": "1.0",
+        "versao_schema": "1.1",
         "lote": lote_id,
         "gerado_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "origem_analise": ORIGEM_ANALISE,
+        "natureza_dados": normalizar_natureza_dados(natureza_dados),
         "historias": historias,
         "evidencias": [
             {"id_interacao": c.get("id_interacao"), "texto": c.get("texto")}
@@ -476,6 +582,266 @@ def conteudo_pacote(caminho):
 
 CAMINHO_CURSOR_DISCORD = "discord/cursor.json"
 MARCADOR_ULTIMO_ID_DISCORD = "__ultimo_id_discord__:"
+
+
+def campo_do_parecer(status):
+    """Campo do estado que guarda o parecer vigente deste status editorial.
+
+    O envelope do Card 05 tem um campo só para o parecer, mas a Curadoria
+    grava textos em dois: observação de ajuste e motivo de rejeição. Devolver
+    None quer dizer que o status atual não tem parecer pendente a registrar.
+    """
+    return {"ajustes": "observacoes", "rejeitado": "motivos"}.get(status)
+
+
+def parecer_do_estado(status, chave, observacoes, motivos):
+    """Parecer do ativo escolhido pelo status, nunca pela ordem dos campos.
+
+    Antes valia a primeira chave preenchida (`observacoes or motivos`): depois
+    de "Solicitar ajustes", a rejeição gravava o motivo em `motivos` mas o
+    pacote saía com a observação antiga. O texto que vale é o do estado atual.
+    """
+    campo = campo_do_parecer(status)
+    if campo is None:
+        return ""
+    origem = observacoes if campo == "observacoes" else motivos
+    return str(origem.get(chave) or "").strip()
+
+
+def montar_bloco_curadoria(lote_id, historias, estado):
+    """Monta as decisões de Curadoria no formato do envelope do Card 05.
+
+    Cada linha liga um ativo às três dimensões independentes — validação
+    factual, status editorial e autorização — mais o parecer escrito pelo
+    curador. As dimensões não se misturam: aprovado não é autorizado, e
+    validado não é aprovado.
+    """
+    observacoes = estado.get("observacoes") or {}
+    motivos = estado.get("motivos") or {}
+    validacao = estado.get("validacao_factual") or {}
+    status_editorial = estado.get("status_curadoria") or {}
+    autorizacao = estado.get("autorizacao") or {}
+
+    linhas = []
+    for historia in historias or []:
+        id_historia = historia.get("id")
+        for ativo in historia.get("ativos") or []:
+            id_ativo = ativo.get("id")
+            if id_historia is None or id_ativo is None:
+                continue
+            chave = f"{id_historia}:{id_ativo}"
+            status_ativo = status_editorial.get(chave, "rascunho")
+            linhas.append(
+                {
+                    "lote": lote_id,
+                    "id_historia": str(id_historia),
+                    "id_ativo": str(id_ativo),
+                    "validacao_factual": validacao.get(chave, "pendente"),
+                    "status_curadoria": status_ativo,
+                    "autorizacao": autorizacao.get(chave, "nao_registrada"),
+                    "parecer": parecer_do_estado(status_ativo, chave, observacoes, motivos),
+                }
+            )
+    return linhas
+
+
+def decisoes_do_bloco(conteudo):
+    """Decisões de um pacote, por chave "historia:ativo".
+
+    Pacote gravado antes deste bloco devolve vazio, em vez de erro: é o caso
+    de todo lote anterior a esta mudança.
+    """
+    if not isinstance(conteudo, dict):
+        return {}
+    bloco = conteudo.get("curadoria")
+    if not isinstance(bloco, list):
+        return {}
+    decisoes = {}
+    for linha in bloco:
+        if not isinstance(linha, dict):
+            continue
+        id_historia = linha.get("id_historia")
+        id_ativo = linha.get("id_ativo")
+        if id_historia is None or id_ativo is None:
+            continue
+        decisoes[f"{id_historia}:{id_ativo}"] = {
+            "validacao_factual": linha.get("validacao_factual", "pendente"),
+            "status_curadoria": linha.get("status_curadoria", "rascunho"),
+            "autorizacao": linha.get("autorizacao", "nao_registrada"),
+            "parecer": linha.get("parecer", ""),
+        }
+    return decisoes
+
+
+def ler_decisoes(caminho):
+    """Decisões guardadas no pacote; vazio quando não há bloco ou a leitura falha."""
+    return decisoes_do_bloco(conteudo_pacote(caminho))
+
+
+def _eh_pacote_principal(caminho):
+    return bool(caminho) and "evidencia" not in str(caminho)
+
+
+def _pasta_do_lote(caminho):
+    partes = str(caminho).split("/")
+    return partes[1] if len(partes) >= 2 else ""
+
+
+def _historia_no_formato_do_app(historia):
+    """Mínimo que as telas exigem: dict com "id" e "ativos" em lista."""
+    return (
+        isinstance(historia, dict)
+        and historia.get("id") not in (None, "")
+        and isinstance(historia.get("ativos"), list)
+    )
+
+
+def recuperar_lote(caminho):
+    """Lê um lote salvo no bucket e devolve o que a sessão precisa para reabri-lo.
+
+    Só lê: nunca chama a IA nem grava. O pacote não guarda as interações
+    originais, então elas não voltam. Lote antigo (1.0), sem natureza ou sem
+    bloco de curadoria, abre com os padrões e um aviso, sem inventar dados.
+    Falha vira {"ok": False, "motivo": ...}.
+    """
+    falha = lambda motivo: {"ok": False, "motivo": motivo}  # noqa: E731
+
+    if not _eh_pacote_principal(caminho):
+        return falha("Este objeto não é o pacote principal do lote.")
+
+    avisos = []
+    # O caminho é fixo por lote; se mesmo assim houver mais de um pacote
+    # principal na pasta, vale o mais recente.
+    pasta = _pasta_do_lote(caminho)
+    irmaos = [
+        p for p in listar_pacotes()
+        if p.get("status") == "salvo" and _pasta_do_lote(p.get("caminho")) == pasta
+    ]
+    principais = [p for p in irmaos if _eh_pacote_principal(p.get("caminho"))]
+    if len(principais) > 1:
+        escolhido = max(principais, key=lambda p: p.get("salvo_em") or "")
+        if escolhido["caminho"] != caminho:
+            caminho = escolhido["caminho"]
+        avisos.append("Há mais de um pacote deste lote; foi aberto o mais recente.")
+
+    conteudo = conteudo_pacote(caminho)
+    if conteudo is None:
+        return falha(ULTIMO_ERRO_OCI or "Não foi possível ler o pacote no bucket.")
+    if not isinstance(conteudo, dict) or not isinstance(conteudo.get("historias"), list):
+        return falha("O pacote está em formato inesperado: não há lista de histórias.")
+
+    # Recusa o pacote inteiro se alguma história não tem o formato do app: as
+    # telas usam "id" e "ativos", e descartar histórias aqui as apagaria do
+    # bucket na próxima decisão (salvar_decisoes regrava a lista inteira).
+    invalidas = [h for h in conteudo["historias"] if not _historia_no_formato_do_app(h)]
+    if invalidas:
+        total = len(conteudo["historias"])
+        if len(invalidas) == total:
+            return falha("Este pacote não tem histórias no formato do app e não pode ser reaberto.")
+        return falha(
+            f"Este pacote tem {len(invalidas)} de {total} histórias fora do formato do app "
+            "e não pode ser reaberto."
+        )
+
+    decisoes = decisoes_do_bloco(conteudo)
+    if not decisoes:
+        avisos.append(
+            "Este lote não tem decisões de curadoria gravadas. "
+            "Tudo abre como pendente, em rascunho e sem autorização."
+        )
+    versao = str(conteudo.get("versao_schema") or "")
+    pacotes = [
+        {"caminho": p["caminho"], "lote": p.get("lote"), "data": p.get("data"),
+         "tamanho": p.get("tamanho"), "status": "salvo", "persistencia": "real",
+         "salvo_em": p.get("salvo_em")}
+        for p in irmaos
+        if p["caminho"] == caminho or not _eh_pacote_principal(p["caminho"])
+    ]
+    if not any(p["caminho"] == caminho for p in pacotes):
+        pacotes.insert(0, {"caminho": caminho, "lote": pasta, "status": "salvo", "persistencia": "real"})
+    return {
+        "ok": True,
+        "motivo": None,
+        "lote_id": str(conteudo.get("lote") or pasta),
+        "versao_schema": versao,
+        "origem_analise": str(conteudo.get("origem_analise") or ""),
+        "natureza_dados": normalizar_natureza_dados(conteudo.get("natureza_dados")),
+        "historias": conteudo["historias"],
+        "decisoes": decisoes,
+        "pacotes": pacotes,
+        "avisos": avisos,
+    }
+
+
+def aplicar_edicoes(historias, edicoes):
+    """Devolve as histórias com os campos editados na sessão aplicados.
+
+    As edições vivem na sessão, em chaves `c:<historia>:<ativo>:<campo>`. O
+    envelope do Card 05 (§4.6) pede os campos estruturados preservados, então
+    o pacote passa a guardar o texto como o curador deixou — sem isso, reabrir
+    um lote devolveria o texto da IA e perderia a revisão.
+    """
+    edicoes = edicoes or {}
+    resultado = []
+    for historia in historias or []:
+        nova = dict(historia)
+        id_historia = historia.get("id")
+        ativos = []
+        for ativo in historia.get("ativos") or []:
+            novo_ativo = dict(ativo)
+            id_ativo = ativo.get("id")
+            campos = dict(ativo.get("campos") or {})
+            editado = False
+            for nome_campo in list(campos):
+                chave = f"c:{id_historia}:{id_ativo}:{nome_campo}"
+                if chave in edicoes and edicoes[chave] is not None:
+                    campos[nome_campo] = str(edicoes[chave])
+                    editado = True
+            # Só mexe no formato quando havia campos ou quando houve edição:
+            # ativo sem campos continua sem o bloco, em vez de ganhar um vazio.
+            if "campos" in ativo or editado:
+                novo_ativo["campos"] = campos
+            ativos.append(novo_ativo)
+        nova["ativos"] = ativos
+        resultado.append(nova)
+    return resultado
+
+
+def salvar_decisoes(lote_id, caminho, historias, estado, edicoes=None):
+    """Acrescenta o bloco de curadoria ao pacote gravado e regrava no mesmo caminho.
+
+    Lê o pacote antes de escrever, em vez de remontar o conteúdo a partir da
+    tela: assim um lote gravado antes deste bloco também aceita decisão nova, e
+    o risco de apagar histórias cai. Também grava os campos com as edições do
+    curador, para a revisão não se perder ao reabrir o lote.
+    Devolve {"ok", "motivo", "data"}.
+    """
+    armazenamento = _storage()
+    if armazenamento is None:
+        return {
+            "ok": False,
+            "motivo": ULTIMO_ERRO_OCI or "OCI indisponivel: credencial nao configurada",
+            "data": None,
+        }
+
+    try:
+        atual = armazenamento.ler_objeto(str(caminho))
+    except Exception as erro:
+        _registrar_erro_oci(erro)
+        return {"ok": False, "motivo": str(erro), "data": None}
+
+    if not isinstance(atual, dict) or not atual:
+        return {"ok": False, "motivo": "Pacote não encontrado no bucket: nada foi gravado", "data": None}
+
+    atual["historias"] = aplicar_edicoes(historias, edicoes)
+    atual["curadoria"] = montar_bloco_curadoria(lote_id, historias, estado)
+    try:
+        resultado = armazenamento.salvar_objeto(str(caminho), atual)
+    except Exception as erro:
+        _registrar_erro_oci(erro)
+        return {"ok": False, "motivo": str(erro), "data": None}
+
+    return {"ok": True, "motivo": None, "data": _data_br(resultado.get("salvo_em"))}
 
 
 def buscar_mensagens_discord(canal_id=None, after_id=None, limite=50):

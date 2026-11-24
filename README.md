@@ -1,4 +1,4 @@
-# CommunityLab 
+# CommunityLab
 
 ![ONE G10](https://img.shields.io/badge/ONE-G10-00875A?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -10,7 +10,7 @@
 **Detector Inteligente de Histórias de Sucesso e Testemunhos com IA**  
 **Hackathon ONE G10 — Equipe 18 | Oracle Next Education + Alura | Simulação No Country**
 
-> **Situação em 22/10/2026:** MVP em desenvolvimento e integração. Há funcionalidades incorporadas à `main`, entregas em revisão e testes integrados ainda pendentes. **O MVP não está homologado nem concluído.**
+> **Situação em 22/11/2026:** fluxo demonstrado com dados fictícios, análise por LLM e armazenamento real na OCI. Apresentação do Demo Day aprovada pelo grupo. **Homologação funcional do MVP ainda pendente.** Integrações, revisões e retestes são acompanhados separadamente.
 
 ---
 
@@ -38,54 +38,59 @@ Demonstrar um fluxo que permita:
 
 **Fora do escopo inicial:** captura direta obrigatória de Discord/Slack, publicação automática, monitoramento em tempo real e dashboards avançados.
 
+## 🎬 Demonstração e apresentação
+
+[Assistir à demonstração do CommunityLab](https://youtu.be/y0ZyTRXie10).
+
+A apresentação final, com slides, demonstração e locução, tem **4min55s** e foi aprovada pelo grupo em 21/11 (Card 25). Essa versão foi compartilhada com a equipe; não se afirma que substituiu o vídeo do link acima.
+
+A rodada demonstrada em 20/11 usou três mensagens fictícias: o Gemini retornou três histórias e seis ativos nos formatos **Post para LinkedIn** e **Card de conquista**. A demonstração incluiu edição, Curadoria e consulta aos dois JSONs no Histórico. Esses formatos não comprovam automaticamente a geração de Testemunho estruturado e Case de sucesso.
+
 ## 📌 Estado das entregas
 
-A tabela distingue integração de código, implementação em PR e homologação. Uma funcionalidade demonstrada isoladamente **não equivale** à validação de ponta a ponta.
+Situação conferida em **22/11/2026**. Código integrado, implantação e aceite funcional são etapas distintas.
 
-| Componente | Situação em 22/10/2026 | Evidência / observação |
+| Componente | Situação | Evidência / limite |
 |---|---|---|
-| Integração Gemini no front-end | **Integrada à `main`** | PR #6, já incorporado; em falha técnica pode operar com dados demonstrativos identificados pela origem da análise. |
-| Citações literais e ID da interação | **Integradas à `main`** | PR #8, merge `210e8a2`; trecho é localizado no lote recebido e citações não verificadas são descartadas. |
-| Interface Streamlit (seis módulos) | **Integrada à main** | PR #5, merge concluído; seis módulos e controles de curadoria incorporados. Testes funcionais e de integração CATP ainda pendentes de validação final. |
-| Pipeline de ingestão, preparação e análise | **Em revisão** | PR #3; requer alinhamento de contratos e regras de liberação. |
-| OCI Object Storage | **Em revisão** | PR #9; gravação e recuperação testadas pela desenvolvedora; ajuste residual solicitado para evitar fallback fictício em falhas de leitura/listagem. |
-| Plano de testes de aceitação | **Integrado à `main`** | `docs/CATP_TEST_PLAN.md` v1.1, PR #4. |
-| Testes CATP integrados | **Pendentes de validação final** | CATP-007 não homologado; CATP-011 executado e documentado pela desenvolvedora, com revisão técnica do PR #9 ainda aberta. |
+| Análise com LLM | Fluxo demonstrado com Gemini e Cohere | Gemini, Cohere e Groq configuráveis. Falha técnica não deve produzir histórias fictícias como resultado real. |
+| OCI Object Storage | Gravação, leitura e regravação sem duplicidade comprovadas nos casos registrados | PR #43. Evidências de bucket privado, IAM e condições gratuitas continuam no Card 18. |
+| Curadoria persistida | PR #57 integrado em `4beccce` | Grava decisões e campos editados; reteste funcional após implantação pendente. |
+| VM OCI | Última evidência registrada: `4beccce`, contêiner saudável e spaCy sem fallback | Implantação das integrações posteriores ainda não confirmada. |
+| Horário no Histórico | PR #56 integrado | Exibição em São Paulo; instantes e identificadores UTC preservados. |
+| Conferência por citação nas telas | PR #59 integrado em `d703feb` | Conferência por origem e revalidação após edição; reteste visual na VM pendente. |
+| Rótulo de análise real | PR #60 integrado em `b6ff760` | Reconhece Gemini/Cohere/Groq. Provedor não determina natureza dos dados; reteste na VM pendente. |
+| Resposta truncada e nova tentativa | PR #61 integrado em `f6dd880` | Trata MAX_TOKENS e permite nova tentativa sobre o mesmo lote. Reteste na VM pendente; não garante sucesso da tentativa seguinte. |
+| Natureza declarada no pacote | PR #62 integrado em `d033d5a` | Pacote principal 1.1 com ficticios/reais/nao_informado; evidencias.json permanece 1.0. |
+| Declaração na Importação e selo nas Histórias | PR #63 integrado em `04ec8c6` | Dependência do #62 resolvida; reteste declaração → pacote OCI → selo pendente. |
+| Fidelidade do exemplo hist-001 | PR #66 integrado em `5cc9e2e` | Descrição e ativo limitados ao que a citação sustenta; citação preservada. |
+| Correção de anonimização | PR #64 integrado em `fcc077e`, após aprovação de Tissiany | Revisora relatou 3.682 testes aprovados e verificações locais com modelo real e fallback. O fallback apresentou falsos positivos em palavras comuns, cidades e termos técnicos. Implantação e reteste na VM pendentes. |
+| Cases de sucesso — Card 14 | PR #67 aberto para revisão | Proposta extrativa; 3.709 testes locais aprovados. Sem validação real de IA/OCI nesta entrega. |
+| Testemunhos estruturados — Card 13 | PR #68 aberto para revisão, baseado no #67 | Título, descrição e citação rastreados; 3.729 testes locais incluindo os cases. Integrar #67 antes de ajustar a base do #68 para main. |
+| Recuperação editorial em nova sessão | Pendente, sem PR identificado na última conferência | Consulta ao JSON não comprova restauração completa de textos editados e decisões. |
+| Apresentação final | Aprovada pelo grupo; Card 25 concluído | Não encerra a homologação funcional do MVP, acompanhada no Card 23. |
 
-**Referências:** [PR #3](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/3) · [PR #5](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/5) · [PR #6](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/6) · [PR #8](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/8) · [PR #9](https://github.com/No-Country-simulation/G10-Brasil-Equipe-18/pull/9)
+Os resultados de suítes informados nos PRs pertencem às respectivas versões e ambientes. Não devem ser somados nem apresentados como uma única execução da versão implantada.
 
 ## 🏗️ Arquitetura funcional
 
-```text
-Interações de comunidades (CSV / JSON)
-                 │
-                 ▼
-       Ingestão e normalização
-                 │
-                 ▼
-       Preparação / análise IA
-                 │
-                 ▼
-    Histórias candidatas + relevância
-                 │
-                 ▼
- Citações literais + IDs das interações
-                 │
-                 ▼
-    Sugestões de ativos editoriais
-                 │
-                 ▼
-   Curadoria humana em três controles
-                 │
-                 ▼
-       Pacotes / OCI Object Storage
+O caminho observado no aplicativo é:
+
+```mermaid
+flowchart TD
+  A["Importação CSV/JSON"] --> B["Preparação e anonimização"]
+  B --> C["Análise com LLM"]
+  C --> D["Histórias, citações e rascunhos"]
+  D --> E["Gravação do pacote na OCI"]
+  E --> F["Histórico: consulta aos JSONs"]
+  D --> G["Estúdio e Curadoria"]
+  G --> H["Persistência das decisões no pacote"]
 ```
 
-Este é o **fluxo-alvo**. A integração entre os módulos e a execução ponta a ponta dependem dos testes de aceitação.
+A interface usa serviços em `app/services`. A presença de módulos em `src` não comprova que todos participam do fluxo do app. A conciliação entre modelos canônicos, projeções da interface e envelope permanece acompanhada nos Cards 02/05/24.
 
 ### Interface Streamlit
 
-A proposta de interface contempla seis módulos: **Dashboard**, **Importação**, **Histórias**, **Estúdio de Conteúdo**, **Curadoria** e **Histórico**. O estado da aplicação utiliza `st.session_state`, e a camada `app/services/data_service.py` concentra chamadas a serviços e, quando aplicável, comportamentos demonstrativos.
+A interface contempla seis módulos: **Dashboard**, **Importação**, **Histórias**, **Estúdio de Conteúdo**, **Curadoria** e **Histórico**. O estado da aplicação utiliza `st.session_state`, e a camada `app/services/data_service.py` concentra chamadas a serviços e, quando aplicável, comportamentos demonstrativos.
 
 ### Integração com IA e evidências
 
@@ -105,13 +110,17 @@ A aplicação dessas regras no fluxo completo será verificada pelo CATP.
 
 ### OCI Object Storage
 
-O PR #9 implementa comunicação com o OCI Object Storage, com configuração externa de credenciais e nomes de objetos determinísticos por lote. A desenvolvedora relatou execução do **CATP-011**, incluindo gravação, recuperação após reabertura e regravação sem aumento na quantidade de objetos (4 lotes e 7 objetos antes e depois). **A revisão do PR permanece aberta**, especialmente quanto ao tratamento de falhas de leitura/listagem sem apresentar dados fictícios como persistidos.
+A gravação e a consulta reais de `pacote-distribuicao.json` e `evidencias.json` foram demonstradas pelo Histórico. O PR #43 registra gravação, leitura e regravação sem duplicidade. Os objetos são organizados por lote.
+
+O PR #57 acrescenta decisões de curadoria e campos editados ao pacote existente. Sua integração não inclui a recuperação completa do lote pelo Histórico em uma nova sessão. Concorrência entre curadores, hidratação condicional e seleção do pacote permanecem limitações registradas.
 
 Dados demonstrativos e operações reais devem ser distinguíveis. **Nenhum status de sucesso deve ser atribuído a uma gravação que não ocorreu.**
 
 #### Configuração de credenciais OCI
 
-O sistema suporta dois métodos de configuração:
+Para a VM com Docker, siga o [guia de implantação](docs/DEPLOYMENT_ORACLE_VM.md): a pasta `.oci/` é montada somente para leitura em `/run/oci`. O arquivo de configuração deve apontar para a chave dentro do contêiner. Variáveis OCI no `.env` não substituem esse arquivo no Compose.
+
+O serviço também suporta:
 
 1. **Streamlit Secrets** (recomendado para deploy no Streamlit Cloud):
    - Configure as cinco variáveis em `.streamlit/secrets.toml` (desenvolvimento local) ou em **Settings > Secrets** do app publicado.
@@ -123,7 +132,7 @@ O sistema suporta dois métodos de configuração:
    - Usado automaticamente quando Streamlit secrets não estão disponíveis.
    - Configure conforme a documentação oficial da OCI.
 
-**Importante:** `secrets.toml` está no `.gitignore` e nunca deve ser commitado. Em produção, substitua o sal de pseudonimização padrão em `.env`.
+**Importante:** `secrets.toml` está no `.gitignore` e nunca deve ser commitado. Defina um sal secreto próprio em `SAL_PSEUDONIMIZACAO`; o Docker Compose exige esse valor e não inicia sem ele. Preserve o sal entre implantações para manter os pseudônimos estáveis.
 
 ## 🛠️ Tecnologias
 
@@ -146,7 +155,6 @@ Os diretórios relevantes incluem:
 ```text
 README.md
 READMEFrontend.md          # documentação específica do front-end, quando disponível
-requirements-front.txt     # dependências do front-end
 app/                       # Streamlit, telas, estado, serviços e mocks
 src/                       # módulos do pipeline, conforme PRs integrados
 docs/
@@ -157,17 +165,17 @@ A estrutura pode evoluir conforme os Pull Requests forem integrados. Para execut
 
 ## 🧪 Testes e critérios de aceitação
 
-O plano oficial está em [`docs/CATP_TEST_PLAN.md`](docs/CATP_TEST_PLAN.md) (v1.1).
+O plano está em [CATP_TEST_PLAN.md](docs/CATP_TEST_PLAN.md) e o histórico documental em [COMMUNITYLAB_HOMOLOGACAO_MVP.md](docs/COMMUNITYLAB_HOMOLOGACAO_MVP.md). Confrontar esses registros com os retestes posteriores no [Card 23](https://trello.com/c/dwxU4dBD).
 
-| Teste | Objetivo | Estado documentado |
-|---|---|---|
-| CATP-007 | Citações literais, rastreabilidade e ID da origem | Código integrado; **teste integrado pendente** |
-| CATP-010a–010d | Separação de validação factual, decisão editorial, autorização e liberação | **Pendente de validação integrada** |
-| CATP-011 | Persistência, recuperação e ausência de duplicidade no OCI | **Executado e relatado no PR #9; validação final pendente** |
-| CATP-013/014 | Contradições e autorização de divulgação | **Pendente de validação integrada** |
-| CATP-015–023 | Fluxos E2E, navegação, Estúdio, Curadoria e modo demonstração | **Pendente de validação integrada** |
+- Há evidências de análise, citações, edição, controles humanos e gravação/consulta OCI em lotes fictícios.
+- Permanecem pendentes a consolidação dos três cenários, dos formatos principais, dos vínculos de origem e da recuperação editorial em nova sessão.
+- A correção de anonimização do PR #64 foi integrada em `fcc077e`, após aprovação de Tissiany. A revisora relatou 3.682 testes aprovados e verificações locais com modelo spaCy real e fallback forçado.
+- Os nomes testados foram mascarados. No fallback, foram observados falsos positivos em palavras comuns, cidades e termos técnicos, como “Estudei SQL”, “Porto Alegre” e “Cloud Foundations”.
+- Esses resultados locais não garantem anonimização completa nem substituem implantação e reteste pela interface.
+- O caso de truncamento com seis interações é acompanhado na issue #58 e no PR #61, já integrado. Reteste na versão implantada permanece pendente.
+- **Nenhum aceite geral do MVP é declarado neste README.**
 
-Não interpretar commits, screenshots ou testes locais isolados como homologação automática do MVP.
+Não interpretar commits, screenshots ou testes locais isolados como homologação automática.
 
 ## 🧪 Casos de demonstração
 
@@ -192,7 +200,6 @@ Usar somente dados fictícios ou autorizados e manter explícito o modo demonstr
 | Integrante | Responsabilidade |
 |---|---|
 | Marcus | Project Manager |
-| Ketlyn Barbosa | Machine Learning Engineer |
 | Tissiany Delmiro | Full Stack Developer |
 | Jaqueline de Lira | AI Engineer |
 | Luciene Godoy | Agent Engineer |
@@ -207,17 +214,23 @@ Usar somente dados fictícios ou autorizados e manter explícito o modo demonstr
 
 ## 🗺️ Próximas etapas
 
-- [x] Estruturar o repositório e estabelecer regras de colaboração.
-- [x] Integrar a conexão Gemini ao front-end (PR #6).
-- [x] Integrar validação literal de citações com ID da origem (PR #8).
-- [x] Publicar o plano CATP v1.1 (PR #4).
-- [ ] Concluir revisão e integração do front-end (PR #5).
-- [ ] Concluir revisão e integração do pipeline (PR #3).
-- [ ] Concluir ajustes, revisão e integração OCI (PR #9).
-- [ ] Validar os contratos entre pipeline, LLM, interface e armazenamento.
-- [ ] Executar e registrar os testes integrados do CATP.
-- [ ] Demonstrar os três casos de uso com evidências.
-- [ ] Finalizar documentação, apresentação e entrega do MVP.
+- [x] Disponibilizar fluxo demonstrável com análise por LLM e armazenamento OCI.
+- [x] Integrar persistência de decisões de curadoria no pacote (#57).
+- [x] Preparar e obter aprovação do grupo para a apresentação final (Card 25).
+- [x] Integrar conferência de citações, rótulos dos provedores e nova tentativa após truncamento (#59, #60 e #61).
+- [x] Integrar natureza declarada dos dados no pacote e nas telas (#62 e #63).
+- [x] Corrigir a descrição do exemplo hist-001 conforme a citação (#66).
+- [x] Revisar e integrar os ajustes de anonimização (#64).
+- [ ] Confirmar implantação do #64 e retestar anonimização pela interface, incluindo as limitações do fallback.
+- [ ] Revisar e integrar cases (#67) e testemunhos (#68), respeitando a dependência #67 → #68.
+- [ ] Confirmar SHA e saúde da versão consolidada implantada na VM.
+- [ ] Retestar citações, provedores, truncamento, natureza declarada e persistência editorial pela interface.
+- [ ] Validar contratos e os formatos principais com IA e OCI reais, usando dados fictícios.
+- [ ] Validar recuperação completa de textos e decisões em nova sessão.
+- [ ] Completar as evidências de configuração OCI do Card 18.
+- [ ] Consolidar CATP, evidências e aceite expresso no Card 23.
+- [ ] Conciliar README, documentação do front, diagrama e relatório com a implementação.
+- [ ] Conferir os arquivos e links finais enviados à plataforma.
 
 ## 📈 Resultados esperados
 
@@ -229,4 +242,4 @@ A licença será definida pela equipe, conforme as regras do Hackathon e a estra
 
 **CommunityLab — Histórias que inspiram. Inteligência que transforma.**  
 Hackathon ONE G10 — Oracle Next Education & Alura · Equipe 18  
-**Prazo previsto de entrega:** 24 de novembro de 2026.
+**Prazo exibido na plataforma No Country na evidência de 20/11:** 22 de novembro de 2026, às 23h59. Fuso da plataforma a confirmar.

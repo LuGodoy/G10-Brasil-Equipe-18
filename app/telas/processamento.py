@@ -5,8 +5,8 @@ import time
 import streamlit as st
 
 from services import data_service as svc
-from state import ir_para
-from styles import caixa, cabecalho, esc, md, topbar
+from state import contagem_ativos_completa, ir_para, situacao_ativos, valor
+from styles import PROVEDORES_NOMES, caixa, cabecalho, esc, md, nome_provedor, topbar
 
 
 ETAPAS = [
@@ -26,6 +26,22 @@ VISUAL = {
 }
 
 ATRASO = float(os.environ.get("COMMUNITYLAB_DELAY", "0.9"))
+
+# Provedores de LLM que podem responder a análise (ResultadoLLM.provedor).
+PROVEDORES_REAIS = tuple(PROVEDORES_NOMES)
+
+
+def rotulo_ambiente(origem):
+    """Rótulo do Ambiente no resumo do lote.
+
+    "Análise real (Provedor)" diz que a IA rodou de verdade e qual provedor
+    respondeu, não que os dados são reais.
+    """
+    if origem == "mock":
+        return "Demonstração"
+    if origem in PROVEDORES_REAIS:
+        return f"Análise real ({nome_provedor(origem)})"
+    return "Não confirmado"
 
 
 def _retry():
@@ -144,19 +160,17 @@ def _desenhar(etapas, botoes):
             canais = len({i["canal"] for i in ss.interacoes})
             historias_ok = etapas[4] == "concluida"
             historias = ss.get("historias", []) if historias_ok else []
-            quantidade_ativos = sum(
-                len(h.get("ativos", [])) for h in historias if isinstance(h, dict)
-            )
             if historias_ok:
+                contagem = contagem_ativos_completa(historias, ss.status_curadoria, ss.status_ativos)
                 if persistido:
-                    situacao = f"{quantidade_ativos} rascunhos · salvos no OCI"
+                    situacao = situacao_ativos(contagem, "salvos no OCI")
                 elif com_erro:
-                    situacao = f"{quantidade_ativos} rascunhos · gravação não confirmada"
+                    situacao = situacao_ativos(contagem, "gravação não confirmada")
                 else:
-                    situacao = f"{quantidade_ativos} rascunhos · aguardando gravação"
+                    situacao = situacao_ativos(contagem, "aguardando gravação")
             else:
                 situacao = "Ativos ainda não gerados"
-            ambiente = "Demonstração" if demonstrativo else "Análise real" if origem == "gemini" else "Não confirmado"
+            ambiente = rotulo_ambiente(origem)
             md(
                 '<b style="font-size:17px;">Resumo do lote</b>'
                 '<hr style="margin:10px 0;border:none;border-top:1px solid #EEF0F4;">'
@@ -185,7 +199,18 @@ def _desenhar(etapas, botoes):
 
     if com_erro:
         if erro_analise:
-            caixa("red", "<b>Falha na análise.</b><br>" + esc(ss.get("proc_erro_analise", "Erro desconhecido.")))
+            if ss.get("proc_erro_truncada"):
+                caixa(
+                    "red",
+                    "<b>A análise não coube no limite de saída da IA.</b><br>"
+                    "A resposta foi cortada antes do fim. O lote e as interações "
+                    "continuam nesta sessão; uma nova tentativa refaz a análise sem "
+                    "importar de novo.",
+                )
+            else:
+                caixa("red", "<b>Falha na análise.</b><br>" + esc(ss.get("proc_erro_analise", "Erro desconhecido.")))
+            if botoes:
+                st.button("↻ Tentar novamente", on_click=_retomar_processamento, key="retry_analise")
         else:
             motivo = ss.get("proc_erro_oci", "") or _motivo_falha(pacotes)
             caixa(
@@ -240,7 +265,10 @@ def _continuar_processamento(ss, etapas, area):
 
     try:
         pacotes = svc.salvar_no_oci(
-            ss.pacotes_oci or svc.pacotes_do_lote(ss.lote_id), ss.lote_id, ss.historias
+            ss.pacotes_oci or svc.pacotes_do_lote(ss.lote_id),
+            ss.lote_id,
+            ss.historias,
+            natureza_dados=valor("natureza_dados", "nao_informado"),
         )
         ss.pacotes_oci = pacotes
         if _pacotes_confirmados(pacotes):
@@ -310,6 +338,7 @@ def render():
     if not retry:
         ss.proc_erro_oci = ""
         ss.proc_erro_analise = ""
+        ss.proc_erro_truncada = False
         ss.proc_erro_etapa = ""
         ss.proc_origem_analise = ""
 
@@ -334,6 +363,7 @@ def render():
             ss.proc_status = "erro"
             ss.proc_erro_etapa = "analise"
             ss.proc_erro_analise = str(erro)
+            ss.proc_erro_truncada = bool(getattr(svc, "ULTIMO_ERRO_TRUNCADO", False))
             _persistir_progresso(ss, etapas)
             with area.container():
                 _desenhar(etapas, botoes=True)
@@ -362,7 +392,12 @@ def render():
     try:
         if ss.get("dados", {}).get("demo_erro_oci"):
             raise RuntimeError("Falha demonstrativa de gravação no OCI.")
-        pacotes = svc.salvar_no_oci(ss.pacotes_oci or svc.pacotes_do_lote(ss.lote_id), ss.lote_id, ss.historias)
+        pacotes = svc.salvar_no_oci(
+            ss.pacotes_oci or svc.pacotes_do_lote(ss.lote_id),
+            ss.lote_id,
+            ss.historias,
+            natureza_dados=valor("natureza_dados", "nao_informado"),
+        )
         ss.pacotes_oci = pacotes
         if _pacotes_confirmados(pacotes):
             _salvar_cursor_discord_se_confirmado(
