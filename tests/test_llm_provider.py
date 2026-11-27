@@ -54,7 +54,7 @@ def test_cohere_falha_com_erro_controlado_em_status_nao_200(monkeypatch):
     try:
         llm_provider._chamar_cohere("prompt", "payload", "modelo", 100, 1)
     except llm_provider.ErroProvedor as erro:
-        assert "Cohere 503" in str(erro)
+        assert "Cohere HTTP 503" in str(erro)
     else:
         raise AssertionError("Esperava ErroProvedor para resposta HTTP não 200")
 
@@ -67,7 +67,7 @@ def test_disponibilidade_prioriza_cohere_sobre_groq(monkeypatch):
     )
     provider = llm_provider.LLMProvider()
 
-    assert provider.provedor_disponivel() == "cohere"
+    assert provider.provedor_disponivel(natureza_dados="ficticios") == "cohere"
 
 
 def test_provider_tenta_cohere_antes_de_groq(monkeypatch):
@@ -96,7 +96,7 @@ def test_provider_tenta_cohere_antes_de_groq(monkeypatch):
         ],
     )
 
-    resultado = provider.gerar("prompt", {})
+    resultado = provider.gerar("prompt", {}, natureza_dados="ficticios")
 
     assert resultado.provedor == "cohere"
     assert resultado.fallback_usado is True
@@ -125,7 +125,7 @@ def test_erro_de_rede_no_provedor_tenta_o_proximo(monkeypatch):
         ],
     )
 
-    resultado = provider.gerar("prompt", {})
+    resultado = provider.gerar("prompt", {}, natureza_dados="ficticios")
 
     assert resultado.provedor == "cohere"
     assert chamadas == ["gemini", "cohere"]

@@ -3,7 +3,7 @@
 Uso em llm.py:
     from services.llm_provider import LLMProvider
     provider = LLMProvider()
-    resposta = provider.gerar(prompt, payload_json)
+    resposta = provider.gerar(prompt, payload_json, natureza_dados="ficticios")
 
 Ordem de tentativa: Gemini → Cohere → Groq.
 Chaves lidas de st.secrets ou variáveis de ambiente. Nunca no código.
@@ -74,6 +74,19 @@ def _max_tokens_configurado() -> int:
     return limite if limite > 0 else MAX_TOKENS_PADRAO
 
 
+def _erro_http(provedor: str, status: int) -> ErroProvedor:
+    categoria = {401: "autenticacao", 403: "acesso negado", 429: "limite de requisicoes", 503: "indisponibilidade"}.get(status, "falha HTTP")
+    return ErroProvedor(f"{provedor} HTTP {status}: {categoria}")
+
+
+def _erro_transporte(erro: requests.RequestException) -> str:
+    if isinstance(erro, requests.Timeout):
+        return "Falha de transporte HTTP: timeout"
+    if isinstance(erro, requests.ConnectionError):
+        return "Falha de transporte HTTP: conexao"
+    return "Falha de transporte HTTP"
+
+
 # ---------- Adaptadores ----------
 
 def _chamar_gemini(
@@ -96,12 +109,12 @@ def _chamar_gemini(
     }
     resposta = requests.post(
         GEMINI_ENDPOINT.format(modelo=modelo),
-        params={"key": chave},
+        headers={"x-goog-api-key": chave},
         json=corpo,
         timeout=timeout,
     )
     if resposta.status_code != 200:
-        raise ErroProvedor(f"Gemini {resposta.status_code}: {resposta.text[:200]}")
+        raise _erro_http("Gemini", resposta.status_code)
     try:
         dados = resposta.json()
         candidato = dados["candidates"][0]
@@ -111,8 +124,8 @@ def _chamar_gemini(
             texto=texto,
             finish_reason=str(candidato.get("finishReason") or ""),
         )
-    except (KeyError, IndexError, TypeError) as e:
-        raise ErroProvedor(f"Resposta inesperada do Gemini: {e}") from e
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise ErroProvedor("Resposta inesperada do Gemini.") from None
 
 
 def _chamar_groq(
@@ -142,7 +155,7 @@ def _chamar_groq(
         timeout=timeout,
     )
     if resposta.status_code != 200:
-        raise ErroProvedor(f"Groq {resposta.status_code}: {resposta.text[:200]}")
+        raise _erro_http("Groq", resposta.status_code)
     try:
         dados = resposta.json()
         escolha = dados["choices"][0]
@@ -150,8 +163,8 @@ def _chamar_groq(
             texto=str(escolha["message"]["content"]),
             finish_reason=str(escolha.get("finish_reason") or ""),
         )
-    except (KeyError, IndexError, TypeError) as e:
-        raise ErroProvedor(f"Resposta inesperada do Groq: {e}") from e
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise ErroProvedor("Resposta inesperada do Groq.") from None
 
 
 def _chamar_cohere(
@@ -181,7 +194,7 @@ def _chamar_cohere(
         timeout=timeout,
     )
     if resposta.status_code != 200:
-        raise ErroProvedor(f"Cohere {resposta.status_code}: {resposta.text[:200]}")
+        raise _erro_http("Cohere", resposta.status_code)
     try:
         dados = resposta.json()
         partes = dados["message"]["content"]
@@ -196,8 +209,8 @@ def _chamar_cohere(
             texto=texto,
             finish_reason=str(dados.get("finish_reason") or ""),
         )
-    except (KeyError, IndexError, TypeError) as e:
-        raise ErroProvedor(f"Resposta inesperada da Cohere: {e}") from e
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise ErroProvedor("Resposta inesperada da Cohere.") from None
 
 
 # ---------- Classe principal ----------
@@ -219,7 +232,7 @@ class LLMProvider:
     max_tokens: int = field(default_factory=_max_tokens_configurado)
     timeout: int = TIMEOUT_PADRAO
 
-    def gerar(self, prompt: str, payload: dict | str) -> ResultadoLLM:
+    def gerar(self, prompt: str, payload: dict | str, *, natureza_dados: str = "nao_informado") -> ResultadoLLM:
         """Envia prompt + payload ao LLM primário; usa o secundário se falhar.
 
         Args:
@@ -237,7 +250,7 @@ class LLMProvider:
         if len(payload_str) > 100_000:
             raise ErroProvedor("Payload excede 100 000 caracteres. Reduza o lote antes de enviar.")
 
-        provedores = self._ordem()
+        provedores = self._ordem_autorizada(natureza_dados)
         erro_primario = ""
 
         for idx, (nome, fn, modelo) in enumerate(provedores):
@@ -259,25 +272,35 @@ class LLMProvider:
                     finish_reason=finish_reason,
                 )
             except (ErroProvedor, requests.RequestException) as e:
-                erro_primario = str(e)
+                erro_primario = (str(e) if isinstance(e, ErroProvedor) else _erro_transporte(e))
                 logger.warning("[llm_provider] %s falhou: %s", nome, erro_primario)
 
         raise ErroProvedor(
             f"Todos os provedores falharam. Último erro: {erro_primario}"
         )
 
-    def como_callable(self) -> "Callable[[str], str]":
+    def como_callable(self, *, natureza_dados: str = "nao_informado") -> "Callable[[str], str]":
         """Retorna callable compatível com classificar_interacao (Callable[[str], str])."""
-        return lambda prompt: self.gerar(prompt, {}).texto
+        return lambda prompt: self.gerar(prompt, {}, natureza_dados=natureza_dados).texto
 
-    def provedor_disponivel(self) -> str | None:
-        """Retorna o primeiro provedor com chave configurada na ordem de fallback."""
-        for nome, chave in (
-            ("gemini", "GEMINI_API_KEY"),
-            ("cohere", "COHERE_API_KEY"),
-            ("groq", "GROQ_API_KEY"),
-        ):
-            if _cfg(chave):
+    def _ordem_autorizada(self, natureza_dados: str) -> list[tuple]:
+        if natureza_dados == "ficticios":
+            return self._ordem()
+        if natureza_dados != "reais":
+            raise ErroProvedor("Declare a natureza dos dados antes do envio.")
+        autorizados = {item.strip().lower() for item in _cfg("LLM_PROVEDORES_DADOS_REAIS").split(",")}
+        if not autorizados or not autorizados <= {"gemini", "cohere", "groq"}:
+            raise ErroProvedor("Lista de provedores para dados reais ausente ou invalida.")
+        return [item for item in self._ordem() if item[0] in autorizados]
+
+    def provedor_disponivel(self, *, natureza_dados: str = "nao_informado") -> str | None:
+        """Primeiro provedor autorizado com chave configurada."""
+        try:
+            ordem = self._ordem_autorizada(natureza_dados)
+        except ErroProvedor:
+            return None
+        for nome, _, _ in ordem:
+            if _cfg(nome.upper() + "_API_KEY"):
                 return nome
         return None
 

@@ -11,8 +11,13 @@ import csv
 import io
 import json
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from services.llm import ResultadoAnalise
 
 from mocks import mock_data as m
+from services import cases as _cases
 from services import conferencia_citacao as _conf
 
 CAMPOS_OBRIGATORIOS = ("autor", "canal", "texto")
@@ -131,6 +136,18 @@ def conferencia_da_citacao(citacao, interacoes):
     return confere, motivo, id_int
 
 
+def interacoes_para_conferencia(historia, interacoes):
+    """Recupera fonte preservada somente para história de origem única."""
+    if interacoes:
+        return interacoes
+    historia = historia or {}
+    origens = historia.get("interacoes_origem") or []
+    fonte = historia.get("mensagem_original")
+    if len(origens) == 1 and _id_valido(origens[0]) and isinstance(fonte, str) and fonte.strip():
+        return [{"_id_efetivo": origens[0], "texto": fonte}]
+    return interacoes
+
+
 def conferencia_da_citacao_do_ativo(texto, historia, interacoes):
     """Confere a citação editável de um ativo, que não traz id_interacao próprio.
 
@@ -141,7 +158,30 @@ def conferencia_da_citacao_do_ativo(texto, historia, interacoes):
     if len(origens) > 1:
         return None, MOTIVO_VARIAS_ORIGENS, None
     id_int = origens[0] if origens else None
-    return conferencia_da_citacao({"texto": texto, "id_interacao": id_int}, interacoes)
+    return conferencia_da_citacao({"texto": texto, "id_interacao": id_int}, interacoes_para_conferencia(historia, interacoes))
+
+
+MOTIVO_CASE_LITERAL = "Texto composto só por trechos da mensagem original"
+MOTIVO_CASE_FORA_DA_FONTE = "Há trechos que não estão na mensagem original"
+MOTIVO_CASE_TEXTO_VAZIO = "Texto vazio"
+
+
+def conferencia_do_texto_case(texto, fonte):
+    """Confere o texto editado do case com a regra do preparar_case.
+
+    Cada parágrafo precisa ser um trecho literal da fonte, na ordem. A fonte é
+    a mensagem original da história (a mesma que o preparar_case usou).
+    Devolve (confere, motivo); confere é None quando não há fonte para conferir
+    ou quando o texto está vazio (nada a conferir nunca vira "confere").
+    """
+    if not (texto or "").strip():
+        return None, MOTIVO_CASE_TEXTO_VAZIO
+    if not (fonte or "").strip():
+        return None, MOTIVO_INDISPONIVEL
+    paragrafos = _cases.dividir_paragrafos(texto or "")
+    if _cases.paragrafos_literais_em_ordem(paragrafos, fonte):
+        return True, MOTIVO_CASE_LITERAL
+    return False, MOTIVO_CASE_FORA_DA_FONTE
 
 
 # ---------- Ingestão ----------
@@ -169,7 +209,7 @@ def _normalizar(itens):
         faltando = [c for c in CAMPOS_OBRIGATORIOS if not str(item.get(c, "")).strip()]
         if faltando:
             raise ValueError(f"Interação {i}: faltam os campos {', '.join(faltando)}.")
-        normalizado = {
+        normalizado: dict[str, str | int] = {
             "autor": str(item["autor"]).strip(),
             "canal": str(item["canal"]).strip(),
             "tipo": str(item.get("tipo") or "mensagem").strip(),
@@ -268,7 +308,7 @@ def _fuso_brasil():
         return timezone(timedelta(hours=-3))
 
 
-def _data_br(iso: str) -> str:
+def _data_br(iso: str | None) -> str:
     """Converte o instante ISO para o fuso de São Paulo: 22/10/2026 01:05.
 
     Aceita offset explícito, sufixo Z e data sem fuso (tratada como UTC, que é
@@ -300,7 +340,13 @@ def _data_br(iso: str) -> str:
     return f"{partes[2]}/{partes[1]}/{partes[0]} {hora}"
 
 
-def analisar(interacoes):
+class FalhaAnalise(RuntimeError):
+    def __init__(self, mensagem, *, truncada=False):
+        super().__init__(mensagem)
+        self.truncada = truncada
+
+
+def analisar(interacoes, *, natureza_dados="nao_informado") -> "ResultadoAnalise":
     """Analisa o lote com o provedor de LLM; falhas não viram histórias fictícias."""
     global ORIGEM_ANALISE, ULTIMO_ERRO, ULTIMO_ERRO_TRUNCADO
     try:
@@ -309,18 +355,20 @@ def analisar(interacoes):
         from services import llm  # type: ignore
 
     try:
-        historias = llm.analisar(interacoes)
-        ORIGEM_ANALISE = llm.ULTIMO_PROVEDOR or "gemini"
+        historias = llm.analisar(interacoes, natureza_dados=normalizar_natureza_dados(natureza_dados))
+        ORIGEM_ANALISE = historias.provedor
         ULTIMO_ERRO = ""
         ULTIMO_ERRO_TRUNCADO = False
         print(f"[analise] concluída: {len(historias)} histórias", flush=True)
         return historias
     except Exception as erro:  # rede, chave ausente, JSON inválido
-        ULTIMO_ERRO = str(erro)
+        mensagem = str(erro)
+        truncada = isinstance(erro, getattr(llm, "ErroRespostaTruncada", ()))
+        ULTIMO_ERRO = mensagem
         ORIGEM_ANALISE = "erro"
-        ULTIMO_ERRO_TRUNCADO = isinstance(erro, getattr(llm, "ErroRespostaTruncada", ()))
-        print(f"[analise] FALHOU: {ULTIMO_ERRO}", flush=True)
-        raise RuntimeError(f"Análise real falhou: {erro}") from erro
+        ULTIMO_ERRO_TRUNCADO = truncada
+        print(f"[analise] FALHOU: {mensagem}", flush=True)
+        raise FalhaAnalise(f"Análise real falhou: {mensagem}", truncada=truncada) from erro
 
 
 def regenerar(historia, ativo_id, vez):
@@ -408,7 +456,7 @@ def normalizar_natureza_dados(valor):
     return texto if texto in NATUREZAS_DADOS else NATUREZA_DADOS_PADRAO
 
 
-def salvar_no_oci(pacotes, lote_id, historias=None, natureza_dados=None):
+def salvar_no_oci(pacotes, lote_id, historias=None, natureza_dados=None, *, origem_analise=None):
     """Grava os pacotes do lote no bucket.
 
     O caminho e montado pelo backend a partir do lote e do nome do arquivo,
@@ -455,7 +503,7 @@ def salvar_no_oci(pacotes, lote_id, historias=None, natureza_dados=None):
         "versao_schema": "1.1",
         "lote": lote_id,
         "gerado_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "origem_analise": ORIGEM_ANALISE,
+        "origem_analise": str(origem_analise or "nao_informado"),
         "natureza_dados": normalizar_natureza_dados(natureza_dados),
         "historias": historias,
         "evidencias": [

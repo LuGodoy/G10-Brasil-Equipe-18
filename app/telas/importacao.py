@@ -7,7 +7,7 @@ import streamlit as st
 
 from services import data_service as svc
 from state import CANAL_TODOS, campo, definir, ir_para, resetar_lote, valor
-from styles import cabecalho, chip, esc, md, plural, topbar
+from styles import cabecalho, chip, esc, md, plural, rotulo_natureza, topbar
 
 
 def render():
@@ -247,6 +247,10 @@ def _tabela_html(linhas):
     )
 
 
+def _rotulo_natureza_declarada():
+    return rotulo_natureza(valor("natureza_dados", "nao_informado"))[0]
+
+
 def _previa():
     ss = st.session_state
     interacoes = ss.interacoes
@@ -268,7 +272,7 @@ def _previa():
     elif origem == "Discord":
         detalhe = f"{esc(origem)} · {plural(len(canais), 'canal', 'canais')}"
     else:
-        detalhe = f"Lote demonstrativo · {plural(len(canais), 'canal', 'canais')} · mensagens fictícias"
+        detalhe = f"{esc(origem)} · {plural(len(canais), 'canal', 'canais')} · {_rotulo_natureza_declarada()}"
     with st.container(border=True):
         esq, dir_ = st.columns([3, 1])
         with esq:
@@ -334,7 +338,7 @@ def _rodape():
             "revise as evidências antes de usar qualquer conteúdo."
         )
     else:
-        nota = "Exemplo fictício. Não representa depoimentos reais do Programa ONE."
+        nota = _rotulo_natureza_declarada() + ". Revise as evidências antes de usar qualquer conteúdo."
     _natureza_dos_dados(n)
     esq, dir_ = st.columns([3, 1])
     with esq:

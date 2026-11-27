@@ -112,7 +112,9 @@ mark {background:#DDD6FE; color:inherit; padding:1px 2px; border-radius:3px;}
 .cl-muted {color:#64748B; font-size:13px;}
 .cl-big {font-size:26px; font-weight:600; color:#0F172A;}
 
-.cl-kv {display:flex; justify-content:space-between; font-size:14px; padding:6px 0;}
+.cl-kv {display:flex; justify-content:space-between; gap:12px; align-items:flex-start; font-size:14px; padding:6px 0;}
+.cl-kv span:first-child {flex-shrink:0;}
+.cl-kv span:last-child {min-width:0; overflow-wrap:anywhere; text-align:right;}
 .cl-kv span:first-child {color:#64748B;}
 
 .cl-table {width:100%; border-collapse:collapse; font-size:14px;}
@@ -277,6 +279,38 @@ def conferencia_da_citacao_editada(texto, historia, interacoes):
     )
 
 
+def eh_case(ativo):
+    """Só o Case de sucesso recebe a conferência do texto (o Post é livre)."""
+    return "Case" in ativo["nome"] or ativo["id"] == "case_sucesso"
+
+
+def conferencia_do_texto_case_editado(texto, historia):
+    """Aviso logo abaixo do campo "Texto do case" (Estúdio e Curadoria).
+
+    Recalculado a cada rerun, portanto a cada edição. Não bloqueia nada.
+    A fonte é a mensagem original da história, a mesma que o case usou.
+    """
+    from services import data_service as svc
+
+    if not (texto or "").strip():
+        return
+    confere, motivo = svc.conferencia_do_texto_case(texto, (historia or {}).get("mensagem_original"))
+    if confere is None:
+        resultado = f'<span class="cl-muted" style="font-size:12px;">{esc(motivo)}</span>'
+    elif confere:
+        resultado = chip(motivo, "green")
+    else:
+        resultado = (
+            f'{chip("⚠ " + motivo, "yellow")}'
+            '<span class="cl-muted" style="font-size:12px;">"Fontes deste conteúdo" '
+            'não cobre essas partes.</span>'
+        )
+    md(
+        f'<div class="cl-muted" style="font-size:12px; margin:-8px 0 8px 0;">'
+        f'Conferência do texto → {resultado}</div>'
+    )
+
+
 def evidencias_citadas(historia, interacoes_do_lote, modo_demonstracao=True):
     """Componente compartilhado: exibe evidências citadas com conferência por citação.
 
@@ -293,12 +327,13 @@ def evidencias_citadas(historia, interacoes_do_lote, modo_demonstracao=True):
     if not citacoes:
         return '<span class="cl-muted">Nenhuma evidência citada registrada.</span>'
 
+    interacoes_do_lote = svc.interacoes_para_conferencia(historia, interacoes_do_lote)
     html_partes = []
     if not interacoes_do_lote:
         # Lote reaberto do Histórico: o pacote não guarda a mensagem original.
         html_partes.append(
             '<div class="cl-muted" style="font-size:12px;">Conferência indisponível: '
-            'a mensagem original não é guardada no pacote.</div>'
+            'não há fonte original vinculada inequivocamente.</div>'
         )
     for citacao in citacoes:
         trecho = citacao.get("texto", "")

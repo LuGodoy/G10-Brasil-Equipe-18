@@ -3,7 +3,7 @@ import streamlit as st
 
 from services import data_service as svc
 from state import campo, definir, historia_por_id, ir_para, valor
-from styles import avatar, cabecalho, caixa, chip, conferencia_da_citacao_editada, destacar, esc, md, topbar
+from styles import avatar, cabecalho, caixa, chip, conferencia_da_citacao_editada, conferencia_do_texto_case_editado, destacar, eh_case, esc, md, topbar
 
 try:  # st.dialog existe a partir da 1.37; antes era experimental
     _dialogo = st.dialog
@@ -182,6 +182,8 @@ def _coluna_rascunhos(h, ativo, status):
         campo(st.text_area, "Texto do case" if "Case" in ativo["nome"] else "Texto",
               _chave(hid, aid, "texto"), ativo["campos"]["texto"], height=240, disabled=not editavel)
         texto_atual = valor(_chave(hid, aid, "texto"), "")
+        if eh_case(ativo):
+            conferencia_do_texto_case_editado(texto_atual, h)
         st.caption(f"{len(texto_atual)} caracteres")
         copiavel = texto_atual
     elif ativo["tipo"] == "testemunho":
@@ -359,7 +361,7 @@ def render():
         with st.container(border=True):
             md('<b style="font-size:18px;">Evidências citadas</b>')
             from styles import evidencias_citadas
-            md(evidencias_citadas(h, ss.interacoes))
+            md(evidencias_citadas(h, ss.interacoes, modo_demonstracao=ss.get("proc_origem_analise") == "mock"))
 
     st.divider()
     
@@ -391,10 +393,9 @@ def render():
         elif validacao == "insuficiente":
             razao_bloqueio = "Evidências insuficientes"
         
-        if not pode_aprovar:
-            b5.markdown(f'<div class="cl-muted" style="text-align:right;padding-top:8px;font-size:12px;">{razao_bloqueio}</div>',
-                       unsafe_allow_html=True)
         b5.button("✓ Aprovar", type="primary", disabled=not pode_aprovar, on_click=_aprovar, args=(hid, aid))
+        if not pode_aprovar:
+            b5.caption(razao_bloqueio)
     else:
         # Após decisão
         b1.button("Desfazer", on_click=_desfazer, args=(hid, aid))
